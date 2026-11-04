@@ -288,6 +288,10 @@
             }
         ];
 
+        /* CARICAMENTO VIDEO SALVATI (MEMORIA TELEFONO) */
+        const savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_videos') || '[]');
+        episodesData.push(...savedVideos);
+
         /* VARIABILI PER REGISTRAZIONE VOCE */
         let customRewardAudioData = localStorage.getItem('bimbiparla_reward_audio') || null;
         let mediaRecorder;
@@ -472,6 +476,12 @@
 
         /* INIZIALIZZAZIONE */
         function initApp() {
+            // Recupera i video di YouTube salvati in memoria
+            let savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt')) || [];
+            if (savedVideos.length > 0) {
+                savedVideos.forEach(video => episodesData.push(video));
+            }
+
             setAppMode('tv');
             // Carica le voci in anticipo
             if ('speechSynthesis' in window) {
@@ -541,14 +551,22 @@
             const match = link.match(regExp);
 
             if (match && match[2].length === 11) {
-                episodesData.push({
+                const newVideo = {
                     id: 'yt_' + Date.now(),
                     icon: '📺',
                     title: title,
                     color: '#E07A5F',
                     type: 'youtube',
                     ytId: match[2]
-                });
+                };
+                
+                episodesData.push(newVideo);
+
+                // Salvataggio permanente nel telefono
+                let savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt')) || [];
+                savedVideos.push(newVideo);
+                localStorage.setItem('bimbiparla_custom_yt', JSON.stringify(savedVideos));
+
                 renderEpisodes();
                 document.getElementById('ytLinkInput').value = '';
                 document.getElementById('ytTitleInput').value = '';
