@@ -126,7 +126,7 @@
                 <button id="installAppBtn" onclick="installApp()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
                     <span>📱</span> <span>Installa App</span>
                 </button>
-                <button onclick="document.getElementById('parentSettingsModal').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
+                <button onclick="openParentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
                     <span>⚙️</span> <span>Area Genitori</span>
                 </button>
                 <button onclick="document.getElementById('githubModal').classList.remove('hidden')" class="bg-[#2B2D42] hover:bg-slate-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
@@ -239,11 +239,17 @@
             <!-- SEZIONE YOUTUBE -->
             <div class="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 mb-5">
                 <h3 class="font-bold text-[#E07A5F] mb-2 flex items-center gap-2"><span>📺</span> Aggiungi Video YouTube</h3>
-                <p class="text-xs text-slate-500 mb-3">Incolla qui il link di un video sicuro (es. Lucilla, Cocomelon).</p>
+                <p class="text-xs text-slate-500 mb-3">Incolla qui il link di un video sicuro (supporta anche gli Shorts).</p>
                 <input type="text" id="ytLinkInput" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3 rounded-xl border-2 border-gray-200 mb-2 text-sm focus:border-[#E07A5F] outline-none">
                 <input type="text" id="ytTitleInput" placeholder="Nome del Cartone (es. Topolino)" class="w-full p-3 rounded-xl border-2 border-gray-200 mb-3 text-sm focus:border-[#E07A5F] outline-none">
                 <button onclick="addYouTubeVideo()" class="w-full bg-[#E07A5F] text-white font-bold py-2.5 rounded-xl shadow-sm">Aggiungi alla TV</button>
                 <div id="ytFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-600">Video Aggiunto!</div>
+                <div id="ytError" class="text-xs font-bold text-center mt-2 hidden text-red-500">Link non valido. Usa un link di YouTube corretto.</div>
+                
+                <!-- LISTA VIDEO PER ELIMINAZIONE -->
+                <div id="parentVideoList" class="mt-4 space-y-2 max-h-32 overflow-y-auto border-t border-gray-200 pt-3">
+                    <!-- I video appariranno qui -->
+                </div>
             </div>
 
             <!-- SEZIONE VOCE REGISTRATA -->
@@ -326,19 +332,11 @@
                     { emoji: '🚗', word: 'Auto', syllables: 'AU - TO', sound: 'Brum Brum!' },
                     { emoji: '🚒', word: 'Pompieri', syllables: 'POM - PIE - RI', sound: 'Nino Nino!' }
                 ]
-            },
-            {
-                id: 'lucilla_canta', icon: '🎵', title: 'Lucilla - Canta con me', color: '#F4D35E', type: 'youtube',
-                ytId: 'M7lc1UVf-VE' /* SOSTITUISCI QUESTO ID con quello di un video reale di Lucilla (es: dQw4w9WgXcQ) */
-            },
-            {
-                id: 'lucilla_balla', icon: '💃', title: 'Lucilla - Balliamo', color: '#E07A5F', type: 'youtube',
-                ytId: 'e2k2NqF8T9Q' /* SOSTITUISCI QUESTO ID con quello di un video reale di Lucilla */
             }
         ];
 
         /* CARICAMENTO VIDEO SALVATI (MEMORIA TELEFONO) */
-        const savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_videos') || '[]');
+        const savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt') || '[]');
         episodesData.push(...savedVideos);
 
         /* VARIABILI PER REGISTRAZIONE VOCE */
@@ -350,6 +348,7 @@
         let wakeLock = null;
         let sleepTimer = null;
         let sleepDurationMs = 0;
+        let tvAutoInterval = null;
         
         /* OBSERVER PER SOCIAL FEED (Autoplay/Pause al tocco) */
         const socialObserver = new IntersectionObserver((entries) => {
@@ -381,598 +380,614 @@
             }
         }
 
-        /* TIMER NANNA */
-        function setTimer(minutes) {
-            sleepDurationMs = minutes * 60 * 1000;
-            // Aggiorna UI Bottoni
-            ['timerBtn0', 'timerBtn10', 'timerBtn20'].forEach(id => {
-                let btn = document.getElementById(id);
-                btn.classList.remove('bg-indigo-600', 'text-white', 'ring-2', 'ring-indigo-400');
-                btn.classList.add('bg-white', 'text-indigo-600', 'border', 'border-indigo-200');
-            });
-            let activeBtn = document.getElementById('timerBtn' + minutes);
-            activeBtn.classList.remove('bg-white', 'text-indigo-600', 'border', 'border-indigo-200');
-            activeBtn.classList.add('bg-indigo-600', 'text-white', 'ring-2', 'ring-indigo-400');
+        /* MOTORE PRINCIPALE E SINTESI VOCALE NATURALE */
+        let bestItalianVoice = null;
+        function loadVoices() {
+            if (!('speechSynthesis' in window)) return;
+            const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('it'));
+            bestItalianVoice = voices.find(v => v.name.includes('Premium') || v.name.includes('Natural') || v.name.includes('Alice') || v.name.includes('Federica') || v.name.includes('Elsa') || v.name.includes('Google')) || voices[0] || null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
         }
 
-        function startSleepTimer() {
-            clearTimeout(sleepTimer);
+        function speakText(text, isReward = false) {
+            if (isReward && customRewardAudioData) {
+                const audio = new Audio(customRewardAudioData);
+                audio.play().catch(e => console.log(e));
+                return;
+            }
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'it-IT';
+            if (bestItalianVoice) msg.voice = bestItalianVoice;
+            msg.rate = 0.9;
+            msg.pitch = 1.1;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function setTimer(minutes) {
+            sleepDurationMs = minutes * 60 * 1000;
+            [0, 10, 20].forEach(m => {
+                const btn = document.getElementById('timerBtn' + m);
+                if (!btn) return;
+                if (m === minutes) {
+                    btn.className = "flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs transition ring-2 ring-indigo-400";
+                } else {
+                    btn.className = "flex-1 bg-white text-indigo-600 border border-indigo-200 font-bold py-2 rounded-xl text-xs transition";
+                }
+            });
+            if (sleepTimer) clearTimeout(sleepTimer);
+            if (minutes > 0 && !document.getElementById('playerOverlay').classList.contains('hidden')) {
+                startSleepCountdown();
+            }
+        }
+
+        function startSleepCountdown() {
+            if (sleepTimer) clearTimeout(sleepTimer);
             if (sleepDurationMs > 0) {
                 sleepTimer = setTimeout(() => {
-                    closePlayer();
-                    speak("La TV è stanca e va a nanna, ciao ciao!");
+                    speakText("La TV è stanca e va a nanna, ciao ciao!");
+                    setTimeout(() => closePlayer(), 3000);
                 }, sleepDurationMs);
             }
         }
 
-        /* FUNZIONI DI NAVIGAZIONE E RENDER */
+        function initApp() {
+            loadVoices();
+            setAppMode('tv');
+        }
+
         function setAppMode(mode) {
             currentMode = mode;
-            document.getElementById('btn_tv').classList.replace('bg-[#E07A5F]', 'bg-[#FFFDF7]');
-            document.getElementById('btn_tv').classList.replace('text-white', 'text-[#2B2D42]');
-            
-            document.getElementById('btn_interactive').classList.replace('bg-[#84A98C]', 'bg-[#FFFDF7]');
-            document.getElementById('btn_interactive').classList.replace('text-white', 'text-[#2B2D42]');
-            
-            document.getElementById('btn_games').classList.replace('bg-[#F4D35E]', 'bg-[#FFFDF7]');
-            document.getElementById('btn_games').classList.replace('text-white', 'text-[#2B2D42]');
+            const modes = ['tv', 'interactive', 'games', 'social'];
+            const activeColors = {
+                tv: 'bg-[#E07A5F] text-white border-[#E07A5F]',
+                interactive: 'bg-[#84A98C] text-white border-[#84A98C]',
+                games: 'bg-[#F4D35E] text-[#2B2D42] border-[#F4D35E]',
+                social: 'bg-[#2B2D42] text-white border-[#2B2D42]'
+            };
+            const inactiveClass = 'bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]';
 
-            if(document.getElementById('btn_social')) {
-                document.getElementById('btn_social').classList.replace('bg-[#A8DADC]', 'bg-[#FFFDF7]');
-                document.getElementById('btn_social').classList.replace('text-white', 'text-[#2B2D42]');
-            }
+            modes.forEach(m => {
+                const btn = document.getElementById('btn_' + m);
+                if (!btn) return;
+                btn.className = `text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${m === mode ? activeColors[m] : inactiveClass}`;
+            });
 
-            if(mode === 'tv') {
-                document.getElementById('btn_tv').classList.replace('bg-[#FFFDF7]', 'bg-[#E07A5F]');
-                document.getElementById('btn_tv').classList.replace('text-[#2B2D42]', 'text-white');
-            } else if (mode === 'interactive') {
-                document.getElementById('btn_interactive').classList.replace('bg-[#FFFDF7]', 'bg-[#84A98C]');
-                document.getElementById('btn_interactive').classList.replace('text-[#2B2D42]', 'text-white');
-            } else if (mode === 'games') {
-                document.getElementById('btn_games').classList.replace('bg-[#FFFDF7]', 'bg-[#F4D35E]');
-                document.getElementById('btn_games').classList.replace('text-[#2B2D42]', 'text-white');
-            } else if (mode === 'social') {
-                document.getElementById('btn_social').classList.replace('bg-[#FFFDF7]', 'bg-[#A8DADC]');
-                document.getElementById('btn_social').classList.replace('text-[#2B2D42]', 'text-white');
-            }
             renderEpisodes();
         }
 
         function renderEpisodes() {
             const grid = document.getElementById('episodesGrid');
-            grid.innerHTML = '';
-            
+            if (!grid) return;
+
+            // MODALITÀ SOCIAL REELS (Profilo in stile Instagram Reels / TikTok)
             if (currentMode === 'social') {
-                // STILE SOCIAL: Griglia stile Profilo TikTok/Reels (Nasconde i moduli educativi)
-                grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4';
                 const ytVideos = episodesData.filter(e => e.type === 'youtube');
-                
                 if (ytVideos.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full text-center py-12 px-4 bg-white rounded-3xl border-2 border-[#E8E2D5]"><div class="text-5xl mb-4 animate-breathe">📱</div><h3 class="font-display font-bold text-xl text-[#2B2D42] mb-2">Nessun video Social</h3><p class="text-slate-500 font-semibold">Vai nell'Area Genitori ⚙️ in alto a destra per aggiungere i video di Lucilla o altri cartoni da YouTube!</p></div>`;
+                    grid.className = "w-full";
+                    grid.innerHTML = `
+                        <div class="bg-white rounded-3xl p-8 border-2 border-[#E8E2D5] text-center shadow-sm max-w-lg mx-auto my-4">
+                            <div class="text-6xl mb-4">📱</div>
+                            <h3 class="font-display text-2xl font-bold text-[#2B2D42] mb-2">Il tuo Feed Social è vuoto!</h3>
+                            <p class="text-sm text-slate-600 mb-6">Aggiungi i video che preferisci (es. Lucilla, cartoni, canzoncine) dall'Area Genitori per creare il tuo feed scorrevole sicuro stile Reels/TikTok.</p>
+                            <button onclick="openParentModal()" class="bg-[#E07A5F] hover:bg-[#d0694e] text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-md transition">
+                                ➕ Aggiungi il primo Video
+                            </button>
+                        </div>
+                    `;
                     return;
                 }
-                
-                ytVideos.forEach(ep => {
-                    const card = document.createElement('div');
-                    card.className = 'relative aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-md cursor-pointer group hover:scale-[1.02] transition-transform';
-                    card.onclick = () => openEpisode(ep.id);
-                    
-                    const imgUrl = `https://img.youtube.com/vi/${ep.ytId}/hqdefault.jpg`;
-                    card.innerHTML = `
-                        <img src="${imgUrl}" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="${ep.title}">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none"></div>
-                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div class="bg-white/30 backdrop-blur-sm rounded-full w-14 h-14 flex items-center justify-center border border-white/50 shadow-lg">
-                                <span class="text-3xl ml-1 drop-shadow-md">▶️</span>
+
+                grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5";
+                grid.innerHTML = ytVideos.map((v, idx) => `
+                    <div onclick="openSocialFeed(${idx})" class="group relative aspect-[9/16] rounded-3xl overflow-hidden bg-slate-900 shadow-md cursor-pointer border-2 border-white hover:scale-[1.02] transition-all">
+                        <img src="https://img.youtube.com/vi/${v.ytId}/hqdefault.jpg" alt="${v.title}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition" onerror="this.src='https://placehold.co/400x700/2B2D42/FFFDF7?text=Video'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-between p-3.5">
+                            <div class="self-end bg-black/50 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
+                                📱 Reel #${idx + 1}
                             </div>
+                            <div class="w-12 h-12 rounded-full bg-white/90 text-[#E07A5F] flex items-center justify-center self-center shadow-lg text-xl pl-0.5">
+                                ▶
+                            </div>
+                            <div class="text-white font-extrabold text-sm line-clamp-2 drop-shadow">${v.title}</div>
                         </div>
-                        <div class="absolute bottom-3 left-3 right-3 text-white font-bold text-sm leading-snug drop-shadow-lg line-clamp-2 pointer-events-none">
-                            ${ep.title}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else {
-                // STILE MODULI CLASSICI (Nasconde i video Social di YouTube)
-                grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5';
-                const eduVideos = episodesData.filter(e => e.type !== 'youtube');
-                
-                eduVideos.forEach(ep => {
-                    let btnColor = ep.color;
-                    let btnText = "Avvia";
-
-                    if (currentMode === 'tv') {
-                        btnColor = '#E07A5F';
-                        btnText = "📺 Avvia TV";
-                    } else if (currentMode === 'interactive') {
-                        btnColor = '#84A98C';
-                        btnText = "👆 Tocca & Parla";
-                    } else if (currentMode === 'games') {
-                        btnColor = '#F4D35E';
-                        btnText = "🎈 Gioca Ora";
-                    }
-
-                    const card = document.createElement('div');
-                    card.className = 'bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] shadow-sm transition-all duration-300 flex flex-col items-center text-center gap-3 cursor-pointer hover:-translate-y-1 hover:shadow-lg';
-                    card.onclick = () => openEpisode(ep.id);
-                    
-                    card.innerHTML = `
-                        <div class="text-6xl mb-2 animate-breathe" style="color: ${ep.color}">${ep.icon}</div>
-                        <h3 class="font-display font-bold text-[#2B2D42] text-lg leading-tight h-10 flex items-center justify-center">${ep.title}</h3>
-                        <button class="mt-2 w-full text-white font-extrabold py-3 px-4 rounded-2xl shadow-sm transition" style="background-color: ${btnColor}">
-                            ${btnText}
-                        </button>
-                    `;
-                    grid.appendChild(card);
-                });
+                    </div>
+                `).join('');
+                return;
             }
+
+            // MODALITÀ STANDARD (TV, Tocca & Parla, Sala Giochi)
+            grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
+            const modeBtnLabels = {
+                tv: { text: '📺 Avvia TV', bg: 'bg-[#E07A5F] text-white' },
+                interactive: { text: '👆 Tocca & Parla', bg: 'bg-[#84A98C] text-white' },
+                games: { text: '🎈 Gioca Ora', bg: 'bg-[#F4D35E] text-[#2B2D42]' }
+            };
+            const btnStyle = modeBtnLabels[currentMode] || modeBtnLabels.tv;
+
+            // Nelle modalità standard mostriamo i cartoni interattivi (e i video YouTube solo in modalità TV)
+            const visibleEpisodes = episodesData.filter(ep => ep.type === 'interactive' || (ep.type === 'youtube' && currentMode === 'tv'));
+
+            grid.innerHTML = visibleEpisodes.map(ep => `
+                <div onclick="openEpisode('${ep.id}')" class="bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-5xl p-3 rounded-2xl" style="background-color: ${ep.color}25">${ep.icon}</span>
+                            <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-slate-100 text-slate-600">
+                                ${ep.type === 'youtube' ? 'Video YouTube' : ep.slides.length + ' Parole'}
+                            </span>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-[#2B2D42] mb-1">${ep.title}</h3>
+                        <p class="text-xs text-slate-500 mb-5">
+                            ${ep.type === 'youtube' ? 'Riproduzione protetta con Scudo Anti-Tocco' : 'Impara sillabe, suoni e parole giocando'}
+                        </p>
+                    </div>
+                    <button class="w-full py-3 rounded-2xl font-extrabold text-sm shadow-sm transition ${btnStyle.bg}">
+                        ${btnStyle.text}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function openSocialFeed(startIndex = 0) {
+            const ytVideos = episodesData.filter(e => e.type === 'youtube');
+            if (ytVideos.length === 0) return;
+
+            activeEpisode = { type: 'social_feed', title: 'Social Reels', icon: '📱' };
+            document.getElementById('playerEpIcon').innerText = '📱';
+            document.getElementById('playerEpTitle').innerText = 'Social Feed';
+            document.getElementById('playerOverlay').classList.remove('hidden');
+            document.getElementById('playerOverlay').classList.add('flex');
+
+            document.getElementById('interactiveStage').classList.add('hidden');
+            document.getElementById('btnPrevSlide').classList.add('hidden');
+            document.getElementById('btnNextSlide').classList.add('hidden');
+
+            const feed = document.getElementById('socialFeedContainer');
+            feed.classList.remove('hidden');
+
+            // In modalità Social lo scudo globale lascia spazio allo swipe verticale, ma ogni video ha una pellicola trasparente anti-click
+            relockScreen();
+            touchShield.style.display = 'none';
+
+            feed.innerHTML = ytVideos.map((v, i) => `
+                <div class="social-slide relative w-full h-full snap-start snap-always flex items-center justify-center bg-black overflow-hidden">
+                    <iframe class="w-full h-full pointer-events-none" src="https://www.youtube.com/embed/${v.ytId}?enablejsapi=1&autoplay=${i === startIndex ? 1 : 0}&controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${v.ytId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    <!-- Scudo locale sopra il singolo video: permette lo swipe ma impedisce di toccare YouTube -->
+                    <div class="absolute inset-0 z-10 bg-transparent"></div>
+                    <div class="absolute bottom-6 left-4 right-16 z-20 pointer-events-none text-left">
+                        <span class="bg-[#E07A5F] text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow">📱 Scorri su/giù</span>
+                        <h4 class="text-white font-extrabold text-lg mt-2 drop-shadow-md">${v.title}</h4>
+                    </div>
+                </div>
+            `).join('');
+
+            const slides = feed.querySelectorAll('.social-slide');
+            slides.forEach(s => socialObserver.observe(s));
+
+            setTimeout(() => {
+                if (slides[startIndex]) {
+                    slides[startIndex].scrollIntoView({ behavior: 'instant' });
+                }
+            }, 60);
+
+            requestWakeLock();
+            startSleepCountdown();
         }
 
         function openEpisode(id) {
-            if (currentMode === 'social') {
-                const ytVideos = episodesData.filter(e => e.type === 'youtube');
-                const startIndex = Math.max(0, ytVideos.findIndex(e => e.id === id));
-                activeEpisode = {
-                    id: 'social',
-                    title: 'Social Bimbi',
-                    icon: '📱',
-                    type: 'social',
-                    slides: ytVideos
-                };
-                slideIndex = startIndex;
-                
-                document.getElementById('playerEpIcon').innerText = activeEpisode.icon;
-                document.getElementById('playerEpTitle').innerText = activeEpisode.title;
-            } else {
-                activeEpisode = episodesData.find(e => e.id === id);
-                slideIndex = 0;
-                
-                document.getElementById('playerEpIcon').innerText = activeEpisode.icon;
-                document.getElementById('playerEpTitle').innerText = activeEpisode.title;
-            }
-            
+            const ep = episodesData.find(e => e.id === id);
+            if (!ep) return;
+            activeEpisode = ep;
+            slideIndex = 0;
+
+            document.getElementById('playerEpIcon').innerText = ep.icon;
+            document.getElementById('playerEpTitle').innerText = ep.title;
             document.getElementById('playerOverlay').classList.remove('hidden');
             document.getElementById('playerOverlay').classList.add('flex');
-            
-            relockScreen(); // Blocca subito l'uscita
-            requestWakeLock(); // Tieni lo schermo acceso
-            startSleepTimer(); // Fai partire il timer se impostato
 
-            if (currentMode === 'social') {
-                document.getElementById('interactiveStage').classList.add('hidden');
-                const feed = document.getElementById('socialFeedContainer');
-                feed.classList.remove('hidden');
-                feed.innerHTML = '';
-                
-                // Popola il feed in vero stile TikTok
-                activeEpisode.slides.forEach((video, index) => {
-                    const slide = document.createElement('div');
-                    slide.className = 'h-full w-full snap-start relative flex items-center justify-center bg-black shrink-0';
-                    // Il video cliccato prova a partire in autoplay, gli altri attendono lo scroll
-                    const autoP = index === slideIndex ? 1 : 0;
-                    slide.innerHTML = `
-                        <iframe class="w-full h-full max-w-4xl pointer-events-none" 
-                        src="https://www.youtube.com/embed/${video.ytId}?autoplay=${autoP}&controls=0&modestbranding=1&rel=0&fs=0&enablejsapi=1" 
-                        title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-                        </iframe>
-                        <!-- Scudo trasparente locale per permettere lo scroll fisico ma bloccare il touch di YouTube -->
-                        <div class="absolute inset-0 z-10"></div>
-                    `;
-                    feed.appendChild(slide);
-                    socialObserver.observe(slide); // Attiva il play automatico quando entra nello schermo
-                });
+            const feed = document.getElementById('socialFeedContainer');
+            feed.classList.add('hidden');
+            feed.innerHTML = '';
 
-                // Scorri automaticamente al video cliccato dalla bimba
-                setTimeout(() => {
-                    if (feed.children[slideIndex]) {
-                        feed.children[slideIndex].scrollIntoView({ behavior: 'instant' });
-                    }
-                }, 10);
-
-            } else {
-                document.getElementById('interactiveStage').classList.remove('hidden');
-                document.getElementById('socialFeedContainer').classList.add('hidden');
-                
-                if(activeEpisode.type === 'youtube') {
-                    document.getElementById('interactiveStage').innerHTML = `
-                        <iframe class="w-full max-w-4xl aspect-video rounded-3xl pointer-events-auto z-10 shadow-2xl animate-fade-in" 
-                        src="https://www.youtube.com/embed/${activeEpisode.ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0" 
-                        title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-                        </iframe>
-                    `;
-                } else {
-                    renderInteractiveSlide();
-                }
-            }
-
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(e => console.log(e));
-            }
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(e => console.log(e));
-            }
-        }
-
-        function renderInteractiveSlide() {
-            if(!activeEpisode || activeEpisode.type === 'youtube') return;
             const stage = document.getElementById('interactiveStage');
-            
-            if (activeEpisode.type === 'social') return; // Gestito nativamente nel feed
+            stage.classList.remove('hidden');
 
-            if (currentMode === 'games') {
-                let options = [...activeEpisode.slides];
-                options = options.sort(() => 0.5 - Math.random()).slice(0, 3);
-                if(!options.includes(activeEpisode.slides[slideIndex])) {
-                    options[0] = activeEpisode.slides[slideIndex];
-                    options = options.sort(() => 0.5 - Math.random());
-                }
+            document.getElementById('btnPrevSlide').classList.remove('hidden');
+            document.getElementById('btnNextSlide').classList.remove('hidden');
 
-                const targetSlide = activeEpisode.slides[slideIndex];
+            relockScreen();
+            // In modalità "Tocca & Parla" o "Sala Giochi", interactiveStage ha z-40 quindi i bottoni restano cliccabili mentre il resto è protetto dallo scudo z-30
+            requestWakeLock();
+            startSleepCountdown();
 
+            renderCurrentSlide();
+
+            if (tvAutoInterval) clearInterval(tvAutoInterval);
+            if (currentMode === 'tv' && ep.type === 'interactive') {
+                tvAutoInterval = setInterval(() => {
+                    nextSlide();
+                }, 6000);
+            }
+        }
+
+        function renderCurrentSlide() {
+            const stage = document.getElementById('interactiveStage');
+            if (!activeEpisode) return;
+
+            if (activeEpisode.type === 'youtube') {
                 stage.innerHTML = `
-                    <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-8 drop-shadow-md">
-                        Dov'è <span class="text-[#F4D35E]">${targetSlide.word}</span>?
-                    </h2>
-                    <div class="flex gap-6 md:gap-12 justify-center items-center pointer-events-auto">
-                        ${options.map(opt => `
-                            <button onclick="checkGameAnswer('${opt.word}', this)" class="text-7xl md:text-9xl bg-white/10 hover:bg-white/30 p-6 rounded-3xl transition-transform transform active:scale-95">
-                                ${opt.emoji}
-                            </button>
-                        `).join('')}
+                    <div class="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-black relative">
+                        <iframe class="w-full h-full pointer-events-none" src="https://www.youtube.com/embed/${activeEpisode.ytId}?autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                        <div class="absolute inset-0 z-10 bg-transparent"></div>
                     </div>
                 `;
-                
-                setTimeout(() => speak(`Dov'è ${targetSlide.word}?`), 500);
-
-            } else {
-                const slide = activeEpisode.slides[slideIndex];
-                const pointerEvents = currentMode === 'interactive' ? 'pointer-events-auto cursor-pointer active:scale-90' : 'pointer-events-none';
-                
-                stage.innerHTML = `
-                    <div onclick="playSlideVoice()" class="flex flex-col items-center transition-transform ${pointerEvents}">
-                        <div class="text-[120px] md:text-[180px] drop-shadow-2xl animate-breathe leading-none">${slide.emoji}</div>
-                        <h1 class="text-5xl md:text-7xl font-display font-bold text-white mt-4 tracking-widest drop-shadow-lg">${slide.word.toUpperCase()}</h1>
-                        <p class="text-2xl md:text-4xl text-[#F4D35E] font-bold mt-3 tracking-[0.2em] drop-shadow-md">${slide.syllables}</p>
-                    </div>
-                `;
-                
-                if (currentMode === 'tv') {
-                    playSlideVoice();
-                    setTimeout(nextSlide, 5000);
-                }
-            }
-        }
-
-        function nextSlide() {
-            if(!activeEpisode || activeEpisode.type === 'youtube') return;
-            slideIndex++;
-            if(slideIndex >= activeEpisode.slides.length) {
-                slideIndex = 0;
-            }
-            renderInteractiveSlide();
-        }
-
-        function prevSlide() {
-            if(!activeEpisode || activeEpisode.type === 'youtube') return;
-            slideIndex--;
-            if(slideIndex < 0) {
-                slideIndex = activeEpisode.slides.length - 1;
-            }
-            renderInteractiveSlide();
-        }
-
-        function closePlayer() {
-            document.getElementById('playerOverlay').classList.add('hidden');
-            document.getElementById('playerOverlay').classList.remove('flex');
-            activeEpisode = null;
-            document.getElementById('interactiveStage').innerHTML = ''; // Ferma il video youtube
-            
-            // Ferma e svuota il feed social
-            socialObserver.disconnect();
-            document.getElementById('socialFeedContainer').innerHTML = '';
-
-            window.speechSynthesis.cancel();
-            
-            releaseWakeLock(); // Rilascia lo schermo
-            clearTimeout(sleepTimer); // Ferma il timer
-
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(e => console.log(e));
-            }
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        }
-
-        /* INIZIALIZZAZIONE */
-        function initApp() {
-            // Recupera i video di YouTube salvati in memoria
-            let savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt')) || [];
-            if (savedVideos.length > 0) {
-                savedVideos.forEach(video => episodesData.push(video));
+                return;
             }
 
-            setAppMode('tv');
-            // Carica le voci in anticipo
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.getVoices();
-                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-            }
-        }
-
-        function playSlideVoice() {
             const slide = activeEpisode.slides[slideIndex];
-            speak(slide.word + ". " + slide.syllables);
+            if (!slide) return;
+
+            // MODALITÀ SALA GIOCHI
+            if (currentMode === 'games') {
+                const others = activeEpisode.slides.filter((_, idx) => idx !== slideIndex);
+                const shuffledOthers = others.sort(() => 0.5 - Math.random()).slice(0, 2);
+                const choices = [slide, ...shuffledOthers].sort(() => 0.5 - Math.random());
+
+                stage.innerHTML = `
+                    <div class="animate-fade-in w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-[#F4D35E]">
+                        <div class="text-xs font-extrabold uppercase tracking-wider text-amber-600 mb-1">🎈 Sala Giochi Interattiva</div>
+                        <h2 class="font-display text-2xl sm:text-4xl font-extrabold text-[#2B2D42] mb-6">
+                            Tocca: <span class="text-[#E07A5F] underline">${slide.word}</span>!
+                        </h2>
+                        <div class="grid grid-cols-3 gap-4 sm:gap-6">
+                            ${choices.map(c => `
+                                <button onclick="checkGameAnswer(this, '${c.word}', '${slide.word}')" class="aspect-square rounded-3xl bg-[#FFFDF7] hover:bg-amber-50 border-4 border-[#E8E2D5] shadow-md flex flex-col items-center justify-center p-4 transition transform active:scale-95">
+                                    <span class="text-6xl sm:text-7xl mb-2 select-none">${c.emoji}</span>
+                                    <span class="font-extrabold text-sm sm:text-base text-[#2B2D42]">${c.word}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                speakText("Dov'è " + slide.word + "?");
+                return;
+            }
+
+            // MODALITÀ TV O TOCCA & PARLA
+            stage.innerHTML = `
+                <div onclick="triggerSlideVoice()" class="animate-fade-in cursor-pointer bg-white/95 backdrop-blur-md rounded-3xl p-8 sm:p-12 shadow-2xl border-4 border-white max-w-lg w-full flex flex-col items-center justify-center transition transform active:scale-95">
+                    <div class="text-8xl sm:text-9xl mb-6 animate-breathe select-none">${slide.emoji}</div>
+                    <div class="text-xs font-extrabold uppercase tracking-widest text-[#84A98C] mb-1">${slide.syllables}</div>
+                    <h2 class="font-display text-4xl sm:text-5xl font-black text-[#2B2D42] mb-3">${slide.word}</h2>
+                    <div class="bg-[#F4D35E]/30 text-[#2B2D42] font-extrabold px-5 py-2 rounded-full text-lg">
+                        🔊 "${slide.sound}"
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-bold mt-5">👆 Tocca la figura per riascoltare</p>
+                </div>
+            `;
+
+            triggerSlideVoice();
         }
 
-        // Corretto: ora la bimba può dare la risposta ANCHE a schermo bloccato!
-        function checkGameAnswer(clickedWord, element) {
-            const targetWord = activeEpisode.slides[slideIndex].word;
-            if (clickedWord === targetWord) {
+        function triggerSlideVoice() {
+            if (!activeEpisode || activeEpisode.type !== 'interactive') return;
+            const slide = activeEpisode.slides[slideIndex];
+            if (!slide) return;
+            speakText(`${slide.word}. ${slide.sound}`);
+        }
+
+        function checkGameAnswer(btnEl, pickedWord, targetWord) {
+            if (pickedWord === targetWord) {
                 createConfetti();
-                
-                // Se c'è l'audio dei genitori, usa quello! Altrimenti voce robotica.
-                if (customRewardAudioData) {
-                    let audio = new Audio(customRewardAudioData);
-                    audio.play();
-                } else {
-                    speak("Bravissima! È " + clickedWord);
-                }
-                
-                setTimeout(nextSlide, 2500);
+                speakText("Bravissima! È proprio " + targetWord + "!", true);
+                setTimeout(() => {
+                    nextSlide();
+                }, 1800);
             } else {
-                element.classList.add('animate-shake');
-                speak("Ops, riprova.");
-                setTimeout(() => element.classList.remove('animate-shake'), 500);
-            }
-        }
-        /* VOCE (Text-To-Speech) MIGLIORATA */
-        function speak(text) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            let msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'it-IT';
-            msg.rate = 0.85; // Più lento e dolce per i bimbi
-            msg.pitch = 1.2;
-
-            // Cerca la voce migliore sul telefono (meno robotica)
-            let voices = window.speechSynthesis.getVoices();
-            let itVoices = voices.filter(v => v.lang.startsWith('it'));
-            let bestVoice = itVoices.find(v => 
-                v.name.toLowerCase().includes('premium') || 
-                v.name.toLowerCase().includes('samantha') || 
-                v.name.toLowerCase().includes('natural') || 
-                v.name.toLowerCase().includes('google')
-            );
-            if (bestVoice) {
-                msg.voice = bestVoice;
-            } else if (itVoices.length > 0) {
-                msg.voice = itVoices[0];
-            }
-
-            window.speechSynthesis.speak(msg);
-        }
-
-        /* FUNZIONI YOUTUBE */
-        function addYouTubeVideo() {
-            const link = document.getElementById('ytLinkInput').value;
-            const title = document.getElementById('ytTitleInput').value || 'Nuovo Video';
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-            const match = link.match(regExp);
-
-            if (match && match[2].length === 11) {
-                const newVideo = {
-                    id: 'yt_' + Date.now(),
-                    icon: '📺',
-                    title: title,
-                    color: '#E07A5F',
-                    type: 'youtube',
-                    ytId: match[2]
-                };
-                
-                episodesData.push(newVideo);
-
-                // Salvataggio permanente nel telefono
-                let savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt')) || [];
-                savedVideos.push(newVideo);
-                localStorage.setItem('bimbiparla_custom_yt', JSON.stringify(savedVideos));
-
-                renderEpisodes();
-                document.getElementById('ytLinkInput').value = '';
-                document.getElementById('ytTitleInput').value = '';
-                
-                const fb = document.getElementById('ytFeedback');
-                fb.classList.remove('hidden');
-                setTimeout(() => fb.classList.add('hidden'), 3000);
+                btnEl.classList.add('animate-shake');
+                speakText("Oh oh, riprova!");
+                setTimeout(() => btnEl.classList.remove('animate-shake'), 500);
             }
         }
 
-        /* FUNZIONI REGISTRAZIONE VOCE */
-        async function toggleRecordVoice() {
-            const btn = document.getElementById('recordBtn');
-            const btnText = document.getElementById('recordBtnText');
-            const btnIcon = document.getElementById('recordBtnIcon');
-
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = () => {
-                            customRewardAudioData = reader.result;
-                            try {
-                                localStorage.setItem('bimbiparla_reward_audio', customRewardAudioData);
-                                const fb = document.getElementById('audioFeedback');
-                                fb.classList.remove('hidden');
-                                setTimeout(() => fb.classList.add('hidden'), 4000);
-                            } catch(e) {
-                                console.error("Memoria piena o registrazione troppo lunga");
-                            }
-                        }
-                    };
-                    
-                    audioChunks = [];
-                    mediaRecorder.start();
-                    btn.classList.replace('bg-emerald-600', 'bg-red-500');
-                    btnText.innerText = "Registrazione in corso... (Clicca per Stop)";
-                    btnIcon.innerText = "🔴";
-                    
-                } catch (err) {
-                    console.error("Errore microfono: ", err);
-                }
-            } else {
-                mediaRecorder.stop();
-                btn.classList.replace('bg-red-500', 'bg-emerald-600');
-                btnText.innerText = "Registra un altro premio";
-                btnIcon.innerText = "🎙️";
-            }
-        }
-
-        /* LUCCHETTO 3 SECONDI */
-        const lockBtn = document.getElementById('parentLockBtn');
-        const lockCircle = document.getElementById('lockProgressCircle');
-        const touchShield = document.getElementById('touchShield');
-        const unlockedBar = document.getElementById('unlockedControlsBar');
-        const secretExitBtn = document.getElementById('secretExitBtn');
-        let lockTimer = null;
-        
-        function relockScreen() {
-            isLocked = true;
-            touchShield.style.display = 'block';
-            unlockedBar.classList.add('hidden');
-            secretExitBtn.classList.add('hidden'); // Nascondi il tasto Esci in alto
-            lockCircle.style.strokeDashoffset = "157";
-            document.getElementById('lockIconEmoji').innerText = "🔒";
-        }
-        
-        function unlockScreen() {
-            isLocked = false;
-            touchShield.style.display = 'none'; // Togli lo scudo
-            unlockedBar.classList.remove('hidden'); // Mostra controlli in basso
-            secretExitBtn.classList.remove('hidden'); // Mostra il tasto Esci in alto
-            document.getElementById('lockIconEmoji').innerText = "🔓";
-        }
-
-        function startUnlock(e) {
-            if(!isLocked) return;
-            e.preventDefault();
-            lockCircle.style.transition = "stroke-dashoffset 3s linear";
-            lockCircle.style.strokeDashoffset = "0";
-            lockTimer = setTimeout(() => {
-                unlockScreen();
-            }, 3000);
-        }
-        function cancelUnlock() {
-            clearTimeout(lockTimer);
-            if(isLocked) {
-                lockCircle.style.transition = "stroke-dashoffset 0.3s";
-                lockCircle.style.strokeDashoffset = "157";
-            }
-        }
-
-        lockBtn.addEventListener('mousedown', startUnlock);
-        lockBtn.addEventListener('touchstart', startUnlock);
-        window.addEventListener('mouseup', cancelUnlock);
-        window.addEventListener('touchend', cancelUnlock);
-
-        /* EFFETTI (Coriandoli) */
         function createConfetti() {
-            const colors = ['#E07A5F', '#F4D35E', '#84A98C', '#A8DADC'];
-            for(let i=0; i<40; i++){
-                let conf = document.createElement('div');
-                conf.className = 'confetti-piece';
-                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            const colors = ['#E07A5F', '#F4D35E', '#84A98C', '#A8DADC', '#FF6B6B'];
+            for (let i = 0; i < 35; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti-piece rounded-full';
                 conf.style.left = Math.random() * 100 + 'vw';
                 conf.style.top = '-20px';
-                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 1.5 + 1.2) + 's';
                 document.body.appendChild(conf);
                 setTimeout(() => conf.remove(), 3000);
             }
         }
 
-        /* SCARICAMENTO FILE PER GITHUB */
-        function downloadCode(type) {
-            let content = '';
-            let filename = '';
-            
-            if(type === 'html') {
-                content = document.documentElement.outerHTML;
-                filename = 'index.html';
-            } else if(type === 'manifest') {
-                content = `{"name":"BimbiParla TV","short_name":"BimbiParla","start_url":"./index.html","display":"fullscreen","background_color":"#FFFDF7","theme_color":"#E07A5F","icons":[{"src":"https://via.placeholder.com/192","sizes":"192x192","type":"image/png"}]}`;
-                filename = 'manifest.json';
-            } else if(type === 'sw') {
-                content = `self.addEventListener('install', (e) => { e.waitUntil(caches.open('v1').then(c => c.addAll(['./index.html']))); }); self.addEventListener('fetch', (e) => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))); });`;
-                filename = 'sw.js';
-            } else if(type === 'readme') {
-                content = `# BimbiParla TV\n\nCarica questi file su GitHub e attiva GitHub Pages nel tuo repository per usare l'app.`;
-                filename = 'README.md';
+        function nextSlide() {
+            if (!activeEpisode || !activeEpisode.slides) return;
+            slideIndex = (slideIndex + 1) % activeEpisode.slides.length;
+            renderCurrentSlide();
+        }
+
+        function prevSlide() {
+            if (!activeEpisode || !activeEpisode.slides) return;
+            slideIndex = (slideIndex - 1 + activeEpisode.slides.length) % activeEpisode.slides.length;
+            renderCurrentSlide();
+        }
+
+        function closePlayer() {
+            if (tvAutoInterval) clearInterval(tvAutoInterval);
+            if (sleepTimer) clearTimeout(sleepTimer);
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            releaseWakeLock();
+
+            const feed = document.getElementById('socialFeedContainer');
+            feed.innerHTML = '';
+            feed.classList.add('hidden');
+
+            document.getElementById('interactiveStage').innerHTML = '';
+            document.getElementById('playerOverlay').classList.add('hidden');
+            document.getElementById('playerOverlay').classList.remove('flex');
+        }
+
+        /* LUCCHETTO GENITORE 3 SECONDI & SCUDO */
+        const lockBtn = document.getElementById('parentLockBtn');
+        const lockCircle = document.getElementById('lockProgressCircle');
+        const lockEmoji = document.getElementById('lockIconEmoji');
+        const unlockedBar = document.getElementById('unlockedControlsBar');
+        const touchShield = document.getElementById('touchShield');
+        const secretExitBtn = document.getElementById('secretExitBtn');
+        let lockHoldTimer = null;
+
+        function startLockHold(e) {
+            if (e) e.preventDefault();
+            if (!isLocked) {
+                relockScreen();
+                return;
             }
-
-            const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
+            lockCircle.style.transition = 'stroke-dashoffset 3s linear';
+            lockCircle.style.strokeDashoffset = '0';
+            lockHoldTimer = setTimeout(() => {
+                unlockScreen();
+            }, 3000);
         }
 
-        /* GESTIONE INSTALLAZIONE PWA (Android & iOS) */
-        let deferredPrompt;
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Previene l'apparizione automatica del banner su Android
-            e.preventDefault();
-            // Salva l'evento
-            deferredPrompt = e;
-            // Mostra il pulsante
-            document.getElementById('installAppBtn').classList.remove('hidden');
-        });
-
-        // Controlla se siamo su iOS per mostrare le istruzioni alternative
-        const isIos = /ipad|iphone|ipod/.test(navigator.userAgent.toLowerCase());
-        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
-
-        if (isIos && !isInStandaloneMode) {
-            // Se è iOS e non è già installata (es. su Safari normale)
-            document.getElementById('installAppBtn').classList.remove('hidden');
+        function cancelLockHold() {
+            if (lockHoldTimer) {
+                clearTimeout(lockHoldTimer);
+                lockHoldTimer = null;
+            }
+            if (isLocked) {
+                lockCircle.style.transition = 'stroke-dashoffset 0.2s ease-out';
+                lockCircle.style.strokeDashoffset = '157';
+            }
         }
 
-        async function installApp() {
-            if (isIos && !isInStandaloneMode) {
-                // Apple non supporta i prompt automatici, mostriamo le istruzioni
-                document.getElementById('iosInstallModal').classList.remove('hidden');
+        function unlockScreen() {
+            isLocked = false;
+            lockEmoji.innerText = '🔓';
+            unlockedBar.classList.remove('hidden');
+            secretExitBtn.classList.remove('hidden');
+            touchShield.style.display = 'none';
+        }
+
+        function relockScreen() {
+            isLocked = true;
+            lockEmoji.innerText = '🔒';
+            lockCircle.style.transition = 'none';
+            lockCircle.style.strokeDashoffset = '157';
+            unlockedBar.classList.add('hidden');
+            secretExitBtn.classList.add('hidden');
+            if (activeEpisode && activeEpisode.type === 'social_feed') {
+                touchShield.style.display = 'none';
+            } else {
+                touchShield.style.display = 'block';
+            }
+        }
+
+        lockBtn.addEventListener('mousedown', startLockHold);
+        lockBtn.addEventListener('touchstart', startLockHold, { passive: false });
+        window.addEventListener('mouseup', cancelLockHold);
+        window.addEventListener('touchend', cancelLockHold);
+
+        /* GESTIONE AREA GENITORI E VIDEO YOUTUBE */
+        function openParentModal() {
+            document.getElementById('parentSettingsModal').classList.remove('hidden');
+            renderParentVideoList();
+        }
+
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            const trimmed = url.trim();
+            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+            const match = trimmed.match(regExp);
+            if (match && match[1]) return match[1];
+            if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+            return null;
+        }
+
+        function renderParentVideoList() {
+            const listEl = document.getElementById('parentVideoList');
+            if (!listEl) return;
+            const ytVideos = episodesData.filter(e => e.type === 'youtube');
+            if (ytVideos.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Nessun video presente. Incolla un link qui sopra!</p>`;
+                return;
+            }
+            listEl.innerHTML = ytVideos.map(v => `
+                <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200 text-xs">
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <span>🎬</span>
+                        <span class="font-bold text-slate-700 truncate">${v.title}</span>
+                    </div>
+                    <button onclick="deleteYouTubeVideo('${v.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 font-bold px-2.5 py-1 rounded-lg shrink-0 transition">
+                        🗑️ Elimina
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteYouTubeVideo(id) {
+            const idx = episodesData.findIndex(e => e.id === id);
+            if (idx > -1) {
+                episodesData.splice(idx, 1);
+                const customYt = episodesData.filter(e => e.type === 'youtube');
+                localStorage.setItem('bimbiparla_custom_yt', JSON.stringify(customYt));
+                renderParentVideoList();
+                renderEpisodes();
+            }
+        }
+
+        function addYouTubeVideo() {
+            const linkInput = document.getElementById('ytLinkInput');
+            const titleInput = document.getElementById('ytTitleInput');
+            const feedback = document.getElementById('ytFeedback');
+            const errorMsg = document.getElementById('ytError');
+
+            feedback.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+
+            const videoId = extractYouTubeId(linkInput.value);
+            const title = titleInput.value.trim() || 'Video Bambini';
+
+            if (!videoId) {
+                errorMsg.classList.remove('hidden');
                 return;
             }
 
-            if (deferredPrompt) {
-                // Mostra il prompt di Android/Chrome
-                deferredPrompt.prompt();
-                // Attendi la risposta dell'utente
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    // Se accetta, nascondi il pulsante
-                    document.getElementById('installAppBtn').classList.add('hidden');
-                }
-                deferredPrompt = null;
+            const newEp = {
+                id: 'yt_' + Date.now(),
+                icon: '🎬',
+                title: title,
+                color: '#E07A5F',
+                type: 'youtube',
+                ytId: videoId
+            };
+
+            episodesData.push(newEp);
+            const customYt = episodesData.filter(e => e.type === 'youtube');
+            localStorage.setItem('bimbiparla_custom_yt', JSON.stringify(customYt));
+
+            linkInput.value = '';
+            titleInput.value = '';
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 3000);
+
+            renderParentVideoList();
+            renderEpisodes();
+        }
+
+        /* REGISTRAZIONE VOCE */
+        async function toggleRecordVoice() {
+            const btn = document.getElementById('recordBtn');
+            const icon = document.getElementById('recordBtnIcon');
+            const text = document.getElementById('recordBtnText');
+            const feedback = document.getElementById('audioFeedback');
+
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                btn.classList.replace('bg-red-500', 'bg-emerald-600');
+                icon.innerText = '⏺️';
+                text.innerText = 'Registra Premio';
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        customRewardAudioData = reader.result;
+                        localStorage.setItem('bimbiparla_reward_audio', customRewardAudioData);
+                        feedback.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(blob);
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start();
+                btn.classList.replace('bg-emerald-600', 'bg-red-500');
+                icon.innerText = '⏹️';
+                text.innerText = 'Ferma Registrazione...';
+            } catch (err) {
+                console.log('Errore microfono:', err);
             }
         }
 
-        /* REGISTRAZIONE SERVICE WORKER (OFFLINE) */
+        /* INSTALLAZIONE PWA */
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('installAppBtn');
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        if (isIOS && !isStandalone && installBtn) {
+            installBtn.classList.remove('hidden');
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!isStandalone && installBtn) installBtn.classList.remove('hidden');
+        });
+
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') installBtn.classList.add('hidden');
+                deferredPrompt = null;
+            } else if (isIOS) {
+                document.getElementById('iosInstallModal').classList.remove('hidden');
+            }
+        }
+
+        /* DOWNLOAD FILE GITHUB */
+        function downloadCode(type) {
+            let content = '';
+            let filename = '';
+            if (type === 'html') {
+                content = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+                filename = 'index.html';
+            } else if (type === 'manifest') {
+                content = JSON.stringify({
+                    name: "BimbiParla TV",
+                    short_name: "BimbiParla",
+                    start_url: "./index.html",
+                    display: "fullscreen",
+                    background_color: "#FFFDF7",
+                    theme_color: "#E07A5F"
+                }, null, 2);
+                filename = 'manifest.json';
+            } else if (type === 'sw') {
+                content = "self.addEventListener('install', e => self.skipWaiting());\nself.addEventListener('fetch', e => e.respondWith( fetch(e.request).catch(() => caches.match(e.request)) ));";
+                filename = 'sw.js';
+            } else if (type === 'readme') {
+                content = "# BimbiParla TV\nCarica questi file su GitHub Pages per installare la web app sul telefono.";
+                filename = 'README.md';
+            }
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('Errore Service Worker:', err));
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
             });
         }
 
-        window.onload = initApp;
+        window.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
