@@ -252,14 +252,20 @@
                 </div>
             </div>
 
-            <!-- SEZIONE VOCE REGISTRATA -->
+            <!-- SEZIONE VOCI REGISTRATE MULTIPLE (MAMMA, PAPÀ, NONNI) -->
             <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100">
-                <h3 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><span>🎙️</span> Voce Mamma/Papà</h3>
-                <p class="text-xs text-slate-600 mb-3">Registra la tua voce per quando la bimba vince un gioco (es. "Bravissima amore!"). Altrimenti l'app userà la voce di sistema.</p>
+                <h3 class="font-bold text-emerald-700 mb-1 flex items-center gap-2"><span>🎙️</span> Voci Premio (Mamma, Papà...)</h3>
+                <p class="text-xs text-slate-600 mb-3">Registra più voci premio (es. Mamma, Papà, Nonni). Quando la bimba indovina un gioco, l'app ne sceglierà una a sorpresa!</p>
+                <input type="text" id="voiceLabelInput" placeholder="Chi parla? (es. Mamma: Bravissima!)" class="w-full p-2.5 rounded-xl border-2 border-emerald-200 mb-2 text-sm focus:border-emerald-600 outline-none bg-white">
                 <button id="recordBtn" onclick="toggleRecordVoice()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
-                    <span id="recordBtnIcon">⏺️</span> <span id="recordBtnText">Registra Premio</span>
+                    <span id="recordBtnIcon">⏺️</span> <span id="recordBtnText">Aggiungi Registrazione Vocale</span>
                 </button>
-                <div id="audioFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-700">Audio Salvato! Verrà usato nei giochi.</div>
+                <div id="audioFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-700">Voce aggiunta alla lista!</div>
+                
+                <!-- LISTA VOCI REGISTRATE -->
+                <div id="recordedVoicesList" class="mt-3 space-y-2 max-h-36 overflow-y-auto border-t border-emerald-200/70 pt-2.5">
+                    <!-- Le voci appariranno qui -->
+                </div>
             </div>
 
             <!-- SEZIONE TIMER NANNA -->
@@ -271,6 +277,22 @@
                     <button id="timerBtn10" onclick="setTimer(10)" class="flex-1 bg-white text-indigo-600 border border-indigo-200 font-bold py-2 rounded-xl text-xs transition">10 Min</button>
                     <button id="timerBtn20" onclick="setTimer(20)" class="flex-1 bg-white text-indigo-600 border border-indigo-200 font-bold py-2 rounded-xl text-xs transition">20 Min</button>
                 </div>
+            </div>
+
+            <!-- SEZIONE BACKUP ESPORTA / IMPORTA PER ALTRI DISPOSITIVI -->
+            <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 mt-5">
+                <h3 class="font-bold text-amber-800 mb-1 flex items-center gap-2"><span>🔄</span> Trasferisci su altro Telefono</h3>
+                <p class="text-xs text-slate-600 mb-3">Salva tutti i video che hai inserito e le voci registrate di Mamma e Papà in un unico file, così puoi inviarlo (es. su WhatsApp) e caricarlo su un altro telefono o tablet!</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button onclick="exportAppBackup()" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 transition">
+                        <span>📤</span> <span>Esporta Dati</span>
+                    </button>
+                    <label class="bg-white hover:bg-amber-100 text-amber-900 border-2 border-amber-300 font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer transition text-center">
+                        <span>📥</span> <span>Importa File</span>
+                        <input type="file" id="importBackupInput" accept=".json,application/json" onchange="importAppBackup(event)" class="hidden">
+                    </label>
+                </div>
+                <div id="backupFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-700"></div>
             </div>
         </div>
     </div>
@@ -339,8 +361,25 @@
         const savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt') || '[]');
         episodesData.push(...savedVideos);
 
-        /* VARIABILI PER REGISTRAZIONE VOCE */
-        let customRewardAudioData = localStorage.getItem('bimbiparla_reward_audio') || null;
+        /* VARIABILI PER REGISTRAZIONE VOCI MULTIPLE (MAMMA, PAPÀ, ECC.) */
+        let rewardAudiosList = [];
+        try {
+            const parsedVoices = JSON.parse(localStorage.getItem('bimbiparla_reward_audios_list') || '[]');
+            if (Array.isArray(parsedVoices)) rewardAudiosList = parsedVoices;
+        } catch (e) {
+            rewardAudiosList = [];
+        }
+        // Retrocompatibilità se c'era già una singola voce salvata in precedenza
+        const legacySingleAudio = localStorage.getItem('bimbiparla_reward_audio');
+        if (legacySingleAudio && rewardAudiosList.length === 0) {
+            rewardAudiosList.push({
+                id: 'voice_legacy',
+                label: 'Voce Mamma/Papà 1',
+                data: legacySingleAudio
+            });
+            localStorage.setItem('bimbiparla_reward_audios_list', JSON.stringify(rewardAudiosList));
+        }
+
         let mediaRecorder;
         let audioChunks = [];
 
@@ -393,10 +432,13 @@
         }
 
         function speakText(text, isReward = false) {
-            if (isReward && customRewardAudioData) {
-                const audio = new Audio(customRewardAudioData);
-                audio.play().catch(e => console.log(e));
-                return;
+            if (isReward && rewardAudiosList.length > 0) {
+                const randomVoice = rewardAudiosList[Math.floor(Math.random() * rewardAudiosList.length)];
+                if (randomVoice && randomVoice.data) {
+                    const audio = new Audio(randomVoice.data);
+                    audio.play().catch(e => console.log(e));
+                    return;
+                }
             }
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
@@ -800,6 +842,7 @@
         function openParentModal() {
             document.getElementById('parentSettingsModal').classList.remove('hidden');
             renderParentVideoList();
+            renderRecordedVoicesList();
         }
 
         function extractYouTubeId(url) {
@@ -883,18 +926,62 @@
             renderEpisodes();
         }
 
-        /* REGISTRAZIONE VOCE */
+        /* REGISTRAZIONE E GESTIONE VOCI MULTIPLE */
+        function renderRecordedVoicesList() {
+            const listEl = document.getElementById('recordedVoicesList');
+            if (!listEl) return;
+            if (rewardAudiosList.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-1">Nessuna voce registrata. Registra Mamma o Papà qui sopra!</p>`;
+                return;
+            }
+            listEl.innerHTML = rewardAudiosList.map((v, i) => `
+                <div class="flex items-center justify-between bg-white p-2 rounded-xl border border-emerald-200 text-xs shadow-sm">
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <span>🗣️</span>
+                        <span class="font-bold text-slate-700 truncate">${v.label || ('Voce #' + (i + 1))}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="playSavedVoice('${v.id}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold px-2.5 py-1 rounded-lg transition" title="Ascolta">
+                            ▶️ Ascolta
+                        </button>
+                        <button onclick="deleteSavedVoice('${v.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 font-bold px-2 py-1 rounded-lg transition" title="Elimina">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function playSavedVoice(id) {
+            const found = rewardAudiosList.find(v => v.id === id);
+            if (found && found.data) {
+                const audio = new Audio(found.data);
+                audio.play().catch(e => console.log(e));
+            }
+        }
+
+        function deleteSavedVoice(id) {
+            rewardAudiosList = rewardAudiosList.filter(v => v.id !== id);
+            try {
+                localStorage.setItem('bimbiparla_reward_audios_list', JSON.stringify(rewardAudiosList));
+            } catch (e) {
+                console.log('Spazio memoria pieno:', e);
+            }
+            renderRecordedVoicesList();
+        }
+
         async function toggleRecordVoice() {
             const btn = document.getElementById('recordBtn');
             const icon = document.getElementById('recordBtnIcon');
             const text = document.getElementById('recordBtnText');
             const feedback = document.getElementById('audioFeedback');
+            const labelInput = document.getElementById('voiceLabelInput');
 
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
                 btn.classList.replace('bg-red-500', 'bg-emerald-600');
                 icon.innerText = '⏺️';
-                text.innerText = 'Registra Premio';
+                text.innerText = 'Aggiungi Registrazione Vocale';
                 return;
             }
 
@@ -907,9 +994,22 @@
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        customRewardAudioData = reader.result;
-                        localStorage.setItem('bimbiparla_reward_audio', customRewardAudioData);
+                        const voiceName = (labelInput && labelInput.value.trim()) ? labelInput.value.trim() : `Voce Premio #${rewardAudiosList.length + 1}`;
+                        const newVoice = {
+                            id: 'voice_' + Date.now(),
+                            label: voiceName,
+                            data: reader.result
+                        };
+                        rewardAudiosList.push(newVoice);
+                        try {
+                            localStorage.setItem('bimbiparla_reward_audios_list', JSON.stringify(rewardAudiosList));
+                        } catch (e) {
+                            console.log('Memoria localStorage piena:', e);
+                        }
+                        if (labelInput) labelInput.value = '';
                         feedback.classList.remove('hidden');
+                        setTimeout(() => feedback.classList.add('hidden'), 3000);
+                        renderRecordedVoicesList();
                     };
                     reader.readAsDataURL(blob);
                     stream.getTracks().forEach(t => t.stop());
@@ -917,10 +1017,90 @@
                 mediaRecorder.start();
                 btn.classList.replace('bg-emerald-600', 'bg-red-500');
                 icon.innerText = '⏹️';
-                text.innerText = 'Ferma Registrazione...';
+                text.innerText = 'Ferma e Salva Voce...';
             } catch (err) {
                 console.log('Errore microfono:', err);
             }
+        }
+
+        /* ESPORTA E IMPORTA BACKUP COMPLETO (VIDEO + VOCI) */
+        function exportAppBackup() {
+            const customYt = episodesData.filter(e => e.type === 'youtube');
+            const backupPayload = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                customVideos: customYt,
+                rewardVoices: rewardAudiosList
+            };
+            const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'bimbiparla-backup.json';
+            a.click();
+
+            const fb = document.getElementById('backupFeedback');
+            if (fb) {
+                fb.innerText = '✅ File bimbiparla-backup.json scaricato!';
+                fb.className = 'text-xs font-bold text-center mt-2 text-emerald-700';
+                fb.classList.remove('hidden');
+                setTimeout(() => fb.classList.add('hidden'), 4000);
+            }
+        }
+
+        function importAppBackup(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const fb = document.getElementById('backupFeedback');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // Ripristina i video personalizzati senza duplicare quelli già presenti
+                    if (Array.isArray(data.customVideos)) {
+                        const existingYtIds = new Set(episodesData.filter(ep => ep.type === 'youtube').map(ep => ep.ytId));
+                        data.customVideos.forEach(v => {
+                            if (v && v.ytId && !existingYtIds.has(v.ytId)) {
+                                episodesData.push(v);
+                                existingYtIds.add(v.ytId);
+                            }
+                        });
+                        const allCustomYt = episodesData.filter(ep => ep.type === 'youtube');
+                        localStorage.setItem('bimbiparla_custom_yt', JSON.stringify(allCustomYt));
+                    }
+
+                    // Ripristina tutte le voci registrate
+                    if (Array.isArray(data.rewardVoices)) {
+                        const existingVoiceIds = new Set(rewardAudiosList.map(v => v.id));
+                        data.rewardVoices.forEach(v => {
+                            if (v && v.data && !existingVoiceIds.has(v.id)) {
+                                rewardAudiosList.push(v);
+                                existingVoiceIds.add(v.id);
+                            }
+                        });
+                        localStorage.setItem('bimbiparla_reward_audios_list', JSON.stringify(rewardAudiosList));
+                    }
+
+                    renderParentVideoList();
+                    renderRecordedVoicesList();
+                    renderEpisodes();
+
+                    if (fb) {
+                        fb.innerText = '🎉 Backup importato! Video e voci ripristinati.';
+                        fb.className = 'text-xs font-bold text-center mt-2 text-emerald-700';
+                        fb.classList.remove('hidden');
+                        setTimeout(() => fb.classList.add('hidden'), 4000);
+                    }
+                } catch (err) {
+                    if (fb) {
+                        fb.innerText = '❌ File non valido. Seleziona un file bimbiparla-backup.json.';
+                        fb.className = 'text-xs font-bold text-center mt-2 text-red-600';
+                        fb.classList.remove('hidden');
+                    }
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         /* INSTALLAZIONE PWA */
