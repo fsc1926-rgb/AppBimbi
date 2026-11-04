@@ -236,6 +236,17 @@
                 </button>
                 <div id="audioFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-700">Audio Salvato! Verrà usato nei giochi.</div>
             </div>
+
+            <!-- SEZIONE TIMER NANNA -->
+            <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-100 mt-5">
+                <h3 class="font-bold text-indigo-700 mb-2 flex items-center gap-2"><span>🌙</span> Timer Nanna</h3>
+                <p class="text-xs text-slate-600 mb-3">La TV si spegnerà da sola per evitare capricci.</p>
+                <div class="flex gap-2">
+                    <button id="timerBtn0" onclick="setTimer(0)" class="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs transition ring-2 ring-indigo-400">Spento</button>
+                    <button id="timerBtn10" onclick="setTimer(10)" class="flex-1 bg-white text-indigo-600 border border-indigo-200 font-bold py-2 rounded-xl text-xs transition">10 Min</button>
+                    <button id="timerBtn20" onclick="setTimer(20)" class="flex-1 bg-white text-indigo-600 border border-indigo-200 font-bold py-2 rounded-xl text-xs transition">20 Min</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -316,6 +327,51 @@
         let mediaRecorder;
         let audioChunks = [];
 
+        /* VARIABILI WAKE LOCK E TIMER */
+        let wakeLock = null;
+        let sleepTimer = null;
+        let sleepDurationMs = 0;
+        
+        /* WAKE LOCK (Schermo Acceso) */
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.log(`Wake Lock error: ${err.name}, ${err.message}`);
+                }
+            }
+        }
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => wakeLock = null);
+            }
+        }
+
+        /* TIMER NANNA */
+        function setTimer(minutes) {
+            sleepDurationMs = minutes * 60 * 1000;
+            // Aggiorna UI Bottoni
+            ['timerBtn0', 'timerBtn10', 'timerBtn20'].forEach(id => {
+                let btn = document.getElementById(id);
+                btn.classList.remove('bg-indigo-600', 'text-white', 'ring-2', 'ring-indigo-400');
+                btn.classList.add('bg-white', 'text-indigo-600', 'border', 'border-indigo-200');
+            });
+            let activeBtn = document.getElementById('timerBtn' + minutes);
+            activeBtn.classList.remove('bg-white', 'text-indigo-600', 'border', 'border-indigo-200');
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'ring-2', 'ring-indigo-400');
+        }
+
+        function startSleepTimer() {
+            clearTimeout(sleepTimer);
+            if (sleepDurationMs > 0) {
+                sleepTimer = setTimeout(() => {
+                    closePlayer();
+                    speak("La TV è stanca e va a nanna, ciao ciao!");
+                }, sleepDurationMs);
+            }
+        }
+
         /* FUNZIONI DI NAVIGAZIONE E RENDER */
         function setAppMode(mode) {
             currentMode = mode;
@@ -392,6 +448,8 @@
             document.getElementById('playerEpTitle').innerText = activeEpisode.title;
             
             relockScreen(); // Blocca subito l'uscita
+            requestWakeLock(); // Tieni lo schermo acceso
+            startSleepTimer(); // Fai partire il timer se impostato
 
             if(activeEpisode.type === 'youtube') {
                 document.getElementById('interactiveStage').innerHTML = `
@@ -485,6 +543,9 @@
             document.getElementById('interactiveStage').innerHTML = ''; // Ferma il video youtube
             window.speechSynthesis.cancel();
             
+            releaseWakeLock(); // Rilascia lo schermo
+            clearTimeout(sleepTimer); // Ferma il timer
+
             if (document.exitFullscreen) {
                 document.exitFullscreen().catch(e => console.log(e));
             }
@@ -769,6 +830,13 @@
                 }
                 deferredPrompt = null;
             }
+        }
+
+        /* REGISTRAZIONE SERVICE WORKER (OFFLINE) */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('Errore Service Worker:', err));
+            });
         }
 
         window.onload = initApp;
