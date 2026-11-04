@@ -7,13 +7,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BimbiParla TV">
-    <meta name="description" content="La TV Educativa interattiva per imparare a parlare e capire, con Scudo Bimbo 360° anti-tocco e anti-sottosopra.">
+    <meta name="description" content="La TV Educativa interattiva per imparare a parlare e capire.">
     <title>BimbiParla TV — Impara a Parlare & Scudo Bimbo 360°</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts: Quicksand & Nunito per leggibilità montessoriana -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
@@ -45,7 +45,6 @@
             font-family: 'Quicksand', sans-serif;
         }
 
-        /* Animazioni dolci e rilassanti (Low-Stimulation / Logopedia) */
         @keyframes breatheGentle {
             0%, 100% { transform: translateY(0px) scale(1); }
             50% { transform: translateY(-8px) scale(1.03); }
@@ -58,39 +57,6 @@
             0%, 92%, 100% { transform: scaleY(1); }
             96% { transform: scaleY(0.1); }
         }
-        @keyframes listenRing {
-            0% { transform: scale(0.95); opacity: 0.85; }
-            70% { transform: scale(1.35); opacity: 0; }
-            100% { transform: scale(1.35); opacity: 0; }
-        }
-        @keyframes rippleBubble {
-            0% { transform: scale(0.2) translateY(0); opacity: 0.9; }
-            100% { transform: scale(2.3) translateY(-25px); opacity: 0; }
-        }
-        @keyframes floatCloud {
-            0%, 100% { transform: translateX(0px) translateY(0px); }
-            50% { transform: translateX(18px) translateY(-6px); }
-        }
-
-        .animate-breathe {
-            animation: breatheGentle 3.8s ease-in-out infinite;
-        }
-        .character-talking .svg-mouth {
-            transform-origin: center;
-            animation: mouthTalk 0.28s ease-in-out infinite;
-        }
-        .svg-eyes {
-            transform-origin: center;
-            animation: eyeBlink 4.5s infinite;
-        }
-        .listen-ring-pulse {
-            animation: listenRing 1.8s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
-        }
-        .animate-cloud {
-            animation: floatCloud 9s ease-in-out infinite;
-        }
-
-        /* --- NUOVO: Animazioni Sala Giochi --- */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-8px) rotate(-3deg); }
@@ -99,7 +65,6 @@
         .animate-shake {
             animation: shake 0.4s ease-in-out;
         }
-
         .confetti-piece {
             position: fixed;
             width: 12px;
@@ -111,189 +76,108 @@
         @keyframes fall {
             to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
+        
+        .animate-breathe { animation: breatheGentle 3.8s ease-in-out infinite; }
+        .character-talking .svg-mouth { transform-origin: center; animation: mouthTalk 0.28s ease-in-out infinite; }
+        .svg-eyes { transform-origin: center; animation: eyeBlink 4.5s infinite; }
 
-        /* Bolle tattili quando la bimba tocca lo Scudo */
-        .touch-bubble {
-            position: fixed;
-            pointer-events: none;
-            border-radius: 9999px;
-            animation: rippleBubble 0.85s ease-out forwards;
-            z-index: 9990;
-        }
-
-        /* Rotazione 180 gradi fluida quando la bimba capovolge il telefono sottosopra */
         #playerViewportWrapper {
             transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
         }
-        .flipped-180 {
-            transform: rotate(180deg);
-        }
-
-        /* Blocco touch nativo sul player */
-        .player-locked-container {
-            touch-action: none;
-        }
-
-        /* Nascondi scrollbar su filtri orizzontali */
+        .flipped-180 { transform: rotate(180deg); }
+        .player-locked-container { touch-action: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-amber-200">
 
-    <!-- BARRA SUPERIORE (HEADER GENITORE & CONTROLLI RAPIDI) -->
+    <!-- HEADER -->
     <header class="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur-md border-b-2 border-[#E8E2D5] px-3.5 py-3 sm:px-6">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#E07A5F] via-[#F4A261] to-[#F4D35E] flex items-center justify-center shadow-md border-2 border-white shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E07A5F] via-[#F4A261] to-[#F4D35E] flex items-center justify-center shadow-md border-2 border-white shrink-0">
                     <svg class="w-9 h-9" viewBox="0 0 80 80">
                         <circle cx="40" cy="42" r="28" fill="#FFFDF7"/>
                         <circle cx="30" cy="36" r="4.5" fill="#2B2D42"/>
                         <circle cx="50" cy="36" r="4.5" fill="#2B2D42"/>
                         <path d="M 32 48 Q 40 57 48 48" stroke="#E07A5F" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-                        <path d="M 28 16 Q 40 6 52 16" stroke="#F4D35E" stroke-width="5" stroke-linecap="round" fill="none"/>
                     </svg>
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <h1 class="font-display text-xl sm:text-2xl md:text-3xl font-bold text-[#2B2D42] tracking-tight">
+                        <h1 class="font-display text-xl font-bold text-[#2B2D42] tracking-tight">
                             BimbiParla <span class="text-[#E07A5F]">TV</span>
                         </h1>
-                        <span class="bg-[#84A98C]/20 text-[#35523B] text-[11px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-[#84A98C]/40">
-                            Metodo Logopedico • 1-4 Anni
-                        </span>
                     </div>
-                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">
-                        Sviluppo del linguaggio • Scudo Anti-Tocco & Anti-Sottosopra
-                    </p>
+                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">Scudo Anti-Tocco & Giochi Educativi</p>
                 </div>
             </div>
-
             <div class="flex items-center gap-2 flex-wrap">
-                <button id="installPwaBtn" onclick="triggerPwaInstall()" class="bg-[#84A98C] hover:bg-[#6B8E73] text-white font-extrabold px-3 py-2 rounded-2xl text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition active:scale-95">
-                    <span>📲</span> <span class="hidden md:inline">Installa App</span>
-                </button>
-                <button onclick="openFamilyStudioModal()" class="bg-[#F4D35E]/40 hover:bg-[#F4D35E]/70 text-[#2B2D42] font-extrabold px-3 py-2 rounded-2xl border-2 border-[#F4D35E] text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition active:scale-95">
-                    <span>🎙️</span> <span>Voce Mamma/Papà</span>
-                </button>
-                <button onclick="openSleepTimerModal()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold px-3 py-2 rounded-2xl border-2 border-indigo-200 text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition active:scale-95">
-                    <span>🌙</span> <span id="headerTimerBadge">Timer Nanna</span>
-                </button>
-                <button onclick="openParentModal()" class="bg-white hover:bg-amber-50 text-[#2B2D42] font-extrabold px-3 py-2 rounded-2xl border-2 border-[#E8E2D5] text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition active:scale-95">
-                    <span>⚙️</span> <span class="hidden sm:inline">Genitori</span>
-                </button>
-                <button onclick="openGithubModal()" class="bg-[#2B2D42] hover:bg-slate-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition active:scale-95">
-                    <span>📦</span> <span>Pacchetto GitHub</span>
+                <button onclick="document.getElementById('githubModal').classList.remove('hidden')" class="bg-[#2B2D42] hover:bg-slate-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
+                    <span>📦</span> <span>Scarica App (GitHub)</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- CONTENUTO PRINCIPALE -->
+    <!-- MAIN -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-3.5 py-5 sm:px-6">
-        <!-- Barra Selettore Modalità -->
-        <section class="mb-6 bg-white rounded-3xl p-4 sm:p-5 border-2 border-[#E8E2D5] shadow-sm">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div>
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#E07A5F] bg-[#E07A5F]/10 px-2.5 py-1 rounded-full">
-                        1. Scegli la modalità
-                    </span>
-                    <h2 class="font-display text-lg sm:text-xl font-bold text-[#2B2D42] mt-1.5">
-                        Come vuoi far imparare la tua bimba oggi?
-                    </h2>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto">
-                    <button id="modeCard_tv" onclick="setAppMode('tv')" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#E07A5F] text-white border-[#E07A5F] shadow-md">
-                        <span class="text-2xl bg-white/20 p-2 rounded-xl">📺</span>
-                        <div>
-                            <div class="font-extrabold text-xs sm:text-sm leading-tight">TV Continua</div>
-                            <div class="text-[11px] opacity-90">Sillaba e aspetta risposta</div>
-                        </div>
-                    </button>
-                    <button id="modeCard_interactive" onclick="setAppMode('interactive')" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5] hover:border-[#84A98C]">
-                        <span class="text-2xl bg-[#84A98C]/20 p-2 rounded-xl">👆</span>
-                        <div>
-                            <div class="font-extrabold text-xs sm:text-sm leading-tight">Tocca & Parla</div>
-                            <div class="text-[11px] text-slate-500">Tocca e scopri i suoni</div>
-                        </div>
-                    </button>
-                    <button id="modeCard_games" onclick="setAppMode('games')" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5] hover:border-[#F4D35E]">
-                        <span class="text-2xl bg-[#F4D35E]/30 p-2 rounded-xl">🎈</span>
-                        <div>
-                            <div class="font-extrabold text-xs sm:text-sm leading-tight">Sala Giochi</div>
-                            <div class="text-[11px] text-slate-500">Trova Colori e Animali</div>
-                        </div>
-                    </button>
-                </div>
+        <!-- MODALITÀ -->
+        <section class="mb-6 bg-white rounded-3xl p-4 border-2 border-[#E8E2D5] shadow-sm">
+            <h2 class="font-display text-lg font-bold text-[#2B2D42] mb-3">Scegli la modalità:</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <button onclick="setAppMode('tv')" id="btn_tv" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#E07A5F] text-white border-[#E07A5F]">
+                    <span class="text-2xl bg-white/20 p-2 rounded-xl">📺</span>
+                    <div><div class="font-extrabold text-sm">TV Continua</div><div class="text-[11px] opacity-90">Cartoni bloccati</div></div>
+                </button>
+                <button onclick="setAppMode('interactive')" id="btn_interactive" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
+                    <span class="text-2xl bg-[#84A98C]/20 p-2 rounded-xl">👆</span>
+                    <div><div class="font-extrabold text-sm">Tocca & Parla</div><div class="text-[11px] text-slate-500">Esplora i suoni</div></div>
+                </button>
+                <button onclick="setAppMode('games')" id="btn_games" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
+                    <span class="text-2xl bg-[#F4D35E]/30 p-2 rounded-xl">🎈</span>
+                    <div><div class="font-extrabold text-sm">Sala Giochi</div><div class="text-[11px] text-slate-500">Trova Colori/Animali</div></div>
+                </button>
             </div>
         </section>
 
-        <!-- Filtri -->
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-            <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <button onclick="filterEpisodes('all')" data-filter="all" class="filter-chip bg-[#2B2D42] text-white font-extrabold px-4 py-2 rounded-2xl text-xs sm:text-sm shrink-0 shadow-sm transition">Tutti gli Episodi</button>
-                <button onclick="filterEpisodes('linguaggio')" data-filter="linguaggio" class="filter-chip bg-white hover:bg-amber-50 text-[#2B2D42] border-2 border-[#E8E2D5] font-bold px-4 py-2 rounded-2xl text-xs sm:text-sm shrink-0 transition">Prime Parole</button>
-                <button onclick="filterEpisodes('gesti')" data-filter="gesti" class="filter-chip bg-white hover:bg-amber-50 text-[#2B2D42] border-2 border-[#E8E2D5] font-bold px-4 py-2 rounded-2xl text-xs sm:text-sm shrink-0 transition">Gesti & Emozioni</button>
-                <button onclick="filterEpisodes('mondo')" data-filter="mondo" class="filter-chip bg-white hover:bg-amber-50 text-[#2B2D42] border-2 border-[#E8E2D5] font-bold px-4 py-2 rounded-2xl text-xs sm:text-sm shrink-0 transition">Colori & Trasporti</button>
-            </div>
-            <button onclick="testItalianVoice()" class="bg-[#84A98C]/15 hover:bg-[#84A98C]/25 text-[#2B2D42] border-2 border-[#84A98C]/40 font-extrabold text-xs sm:text-sm px-4 py-2 rounded-2xl transition flex items-center gap-1.5 shrink-0">🔊 Prova Voce</button>
-        </div>
-
-        <div id="episodesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+        <!-- EPISODI -->
+        <div id="episodesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     </main>
 
-    <!-- PLAYER FULLSCREEN CON SCUDO BIMBO -->
+    <!-- PLAYER -->
     <div id="playerOverlay" class="fixed inset-0 z-50 bg-[#1D202F] hidden flex-col justify-between overflow-hidden player-locked-container">
         <div id="playerViewportWrapper" class="relative w-full h-full flex flex-col justify-between overflow-hidden">
             <div id="stageContainer" class="relative w-full h-full flex flex-col items-center justify-center overflow-hidden select-none">
-                <!-- Info Header -->
-                <div class="absolute top-3 left-3 right-20 z-20 flex flex-wrap items-center gap-2 pointer-events-none">
-                    <div class="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-sm border-2 border-[#E8E2D5] flex items-center gap-2.5">
-                        <span id="playerEpIcon" class="text-2xl">🐮</span>
-                        <div>
-                            <h3 id="playerEpTitle" class="font-display font-bold text-[#2B2D42] text-xs sm:text-sm">Titolo</h3>
-                            <p id="playerModeLabel" class="text-[10px] font-extrabold text-[#E07A5F] mt-0.5">🔒 Scudo Bimbo Attivo</p>
-                        </div>
-                    </div>
-                    <div id="voiceCoachBadge" class="bg-[#F4D35E] text-[#2B2D42] font-extrabold text-xs px-3.5 py-2 rounded-2xl shadow-sm flex items-center gap-2 border-2 border-white">
-                        <span id="voiceCoachIcon">🗣️</span>
-                        <span id="voiceCoachStatus">Ascolta...</span>
-                    </div>
-                    <div id="flipIndicatorBadge" class="hidden bg-indigo-600 text-white font-extrabold text-[11px] px-3 py-1.5 rounded-full shadow-sm items-center gap-1">🔄 Ruotato</div>
-                </div>
-
-                <div id="interactiveStage" class="relative z-10 w-full max-w-5xl px-4 flex flex-col items-center justify-center text-center mt-6"></div>
                 
-                <div id="youtubeStage" class="hidden relative z-10 w-full h-full">
-                    <iframe id="ytIframe" class="w-full h-full pointer-events-none" src="" frameborder="0" allow="autoplay" allowfullscreen></iframe>
+                <!-- HEADER PLAYER -->
+                <div class="absolute top-3 left-3 z-20 flex gap-2 pointer-events-none">
+                    <div class="bg-white/90 backdrop-blur-md px-3 py-2 rounded-2xl flex items-center gap-2">
+                        <span id="playerEpIcon" class="text-xl">🐮</span>
+                        <h3 id="playerEpTitle" class="font-bold text-[#2B2D42] text-sm">Titolo</h3>
+                    </div>
                 </div>
 
-                <div id="sleepOverlay" class="hidden absolute inset-0 z-35 bg-slate-950/95 flex-col items-center justify-center text-center p-6 transition-opacity duration-1000">
-                    <h2 class="font-display text-3xl sm:text-5xl font-bold text-amber-200 mb-2">Shhh... I cartoni fanno la nanna 🌙</h2>
-                </div>
+                <!-- STAGE (Dove appaiono animali e colori) -->
+                <div id="interactiveStage" class="relative z-10 w-full max-w-5xl px-4 flex flex-col items-center justify-center text-center mt-6"></div>
 
-                <div class="absolute bottom-4 inset-x-5 z-20 flex items-center justify-between gap-4 pointer-events-none">
-                    <div id="stepDotsContainer" class="flex items-center gap-2 bg-white/85 backdrop-blur-md px-3.5 py-2 rounded-full shadow-sm"></div>
-                </div>
             </div>
 
-            <!-- Scudo e Controlli -->
+            <!-- SCUDO INVISIBILE -->
             <div id="touchShield" class="fixed inset-0 z-30 cursor-default"></div>
 
-            <div id="unlockedControlsBar" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-[#2B2D42]/95 text-white px-4 py-3 rounded-3xl flex flex-wrap items-center justify-center gap-2 w-[95%] max-w-2xl">
-                <button onclick="prevSlide()" class="bg-slate-700 px-3 py-2 rounded-xl text-sm">⏮️ Indietro</button>
-                <button onclick="replayCurrentWord()" class="bg-[#F4D35E] text-[#2B2D42] px-3.5 py-2 rounded-xl text-sm font-bold">🗣️ Ripeti</button>
-                <button onclick="nextSlide()" class="bg-slate-700 px-3 py-2 rounded-xl text-sm">Avanti ⏭️</button>
-                <button onclick="cyclePlayerModeInside()" class="bg-[#84A98C] px-3 py-2 rounded-xl text-sm font-bold">🔄 Modalità</button>
-                <button onclick="toggleManualFlip180()" class="bg-indigo-600 px-3 py-2 rounded-xl text-sm font-bold">🙃 Gira</button>
-                <button onclick="relockScreen()" class="bg-emerald-600 px-3 py-2 rounded-xl text-sm font-bold">🔒 Riblocca</button>
-                <button onclick="closePlayer()" class="bg-[#E07A5F] px-3.5 py-2 rounded-xl text-sm font-bold">✖ Esci</button>
+            <!-- CONTROLLI GENITORE -->
+            <div id="unlockedControlsBar" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-[#2B2D42]/95 text-white px-4 py-3 rounded-3xl flex gap-2">
+                <button onclick="prevSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Indietro</button>
+                <button onclick="relockScreen()" class="bg-emerald-600 px-3 py-2 rounded-xl font-bold">Riblocca</button>
+                <button onclick="closePlayer()" class="bg-[#E07A5F] px-3.5 py-2 rounded-xl font-bold">Esci</button>
+                <button onclick="nextSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Avanti</button>
             </div>
 
-            <!-- Lucchetto 3 Secondi -->
-            <div class="fixed top-3 right-3 z-50 flex flex-col items-end">
+            <!-- LUCCHETTO 3 SECONDI -->
+            <div class="fixed top-3 right-3 z-50">
                 <button id="parentLockBtn" class="relative w-14 h-14 rounded-2xl bg-[#2B2D42]/75 border-2 border-white/40 flex items-center justify-center shadow-lg">
                     <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 60 60">
                         <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="5"></circle>
@@ -305,15 +189,275 @@
         </div>
     </div>
 
-    <!-- INCLUDI QUI I MODALI (Family Studio, Sleep Timer, Parent Modal, Github Modal) OMESSI PER BREVITÀ GRAFICA MA PRESENTI NELLA LOGICA -->
-    <!-- (Nel codice completo copiato sopra hai già l'HTML completo) -->
+    <!-- MODALE GITHUB -->
+    <div id="githubModal" class="fixed inset-0 z-50 bg-[#2B2D42]/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
+            <button onclick="document.getElementById('githubModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F]">✖</button>
+            <h2 class="font-display text-2xl font-bold text-[#2B2D42] mb-2">📦 File per GitHub</h2>
+            <p class="text-sm text-slate-600 mb-6">Scarica i file pronti per creare la tua PWA su GitHub Pages.</p>
+            <div class="space-y-3">
+                <button onclick="downloadCode('html')" class="w-full bg-[#E07A5F] text-white font-bold py-3 rounded-xl">1. Scarica index.html</button>
+                <button onclick="downloadCode('manifest')" class="w-full bg-[#F4D35E] text-[#2B2D42] font-bold py-3 rounded-xl">2. Scarica manifest.json</button>
+                <button onclick="downloadCode('sw')" class="w-full bg-[#84A98C] text-white font-bold py-3 rounded-xl">3. Scarica sw.js (Offline)</button>
+                <button onclick="downloadCode('readme')" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl">4. Scarica README (Istruzioni)</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- JAVASCRIPT -->
     <script>
-        /* =========================================================
-           Qui inserisci lo stesso identico JavaScript fornito nel 
-           messaggio precedente. (Tutta la logica completa)
-           ========================================================= */
+        /* STATO DELL'APP */
+        let currentMode = 'tv';
+        let isLocked = true;
+        let activeEpisode = null;
+        let slideIndex = 0;
+
+        /* DATABASE EPISODI */
+        const episodesData = [
+            {
+                id: 'fattoria', icon: '🐮', title: 'La Fattoria dei Versi', color: '#84A98C',
+                slides: [
+                    { emoji: '🐮', word: 'Mucca', syllables: 'MUU - CCA', sound: 'Muuu' },
+                    { emoji: '🐷', word: 'Maiale', syllables: 'MA - IA - LE', sound: 'Oink Oink' },
+                    { emoji: '🐔', word: 'Gallina', syllables: 'GAL - LI - NA', sound: 'Coccodè' }
+                ]
+            },
+            {
+                id: 'colori', icon: '🎈', title: 'I Colori Base', color: '#F4D35E',
+                slides: [
+                    { emoji: '🔴', word: 'Rosso', syllables: 'ROS - SO', sound: 'Rosso!' },
+                    { emoji: '🔵', word: 'Blu', syllables: 'B - LU', sound: 'Blu!' },
+                    { emoji: '🟡', word: 'Giallo', syllables: 'GIAL - LO', sound: 'Giallo!' }
+                ]
+            }
+        ];
+
+        /* INIZIALIZZAZIONE */
+        function initApp() {
+            setAppMode('tv');
+        }
+
+        function setAppMode(mode) {
+            currentMode = mode;
+            // Aggiorna grafica pulsanti
+            ['tv', 'interactive', 'games'].forEach(m => {
+                let btn = document.getElementById('btn_' + m);
+                btn.className = `text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${
+                    mode === m ? (m==='tv'?'bg-[#E07A5F] text-white border-[#E07A5F]' : m==='interactive'?'bg-[#84A98C] text-white border-[#84A98C]':'bg-[#F4D35E] text-[#2B2D42] border-[#F4D35E]') 
+                    : 'bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]'
+                }`;
+            });
+            renderEpisodes();
+        }
+
+        function renderEpisodes() {
+            const grid = document.getElementById('episodesGrid');
+            grid.innerHTML = '';
+            
+            episodesData.forEach(ep => {
+                let btnColor = currentMode === 'tv' ? 'bg-[#E07A5F] text-white' : currentMode === 'interactive' ? 'bg-[#84A98C] text-white' : 'bg-[#F4D35E] text-[#2B2D42]';
+                let btnText = currentMode === 'tv' ? '📺 Avvia TV' : currentMode === 'interactive' ? '👆 Tocca & Parla' : '🎈 Gioca Ora';
+
+                grid.innerHTML += `
+                    <div class="bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] flex flex-col h-full">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="text-4xl bg-gray-50 w-16 h-16 rounded-2xl flex items-center justify-center border-2 border-[#E8E2D5]">${ep.icon}</div>
+                            <h3 class="font-bold text-lg">${ep.title}</h3>
+                        </div>
+                        <button onclick="startEpisode('${ep.id}')" class="mt-auto w-full ${btnColor} font-bold py-3 rounded-xl transition active:scale-95">
+                            ${btnText}
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        /* LOGICA PLAYER */
+        function startEpisode(id) {
+            activeEpisode = episodesData.find(e => e.id === id);
+            slideIndex = 0;
+            document.getElementById('playerEpIcon').innerText = activeEpisode.icon;
+            document.getElementById('playerEpTitle').innerText = activeEpisode.title;
+            
+            document.getElementById('playerOverlay').classList.remove('hidden');
+            document.getElementById('playerOverlay').classList.add('flex');
+            
+            relockScreen();
+            renderSlide();
+        }
+
+        function closePlayer() {
+            document.getElementById('playerOverlay').classList.add('hidden');
+            document.getElementById('playerOverlay').classList.remove('flex');
+        }
+
+        function renderSlide() {
+            const stage = document.getElementById('interactiveStage');
+            const slide = activeEpisode.slides[slideIndex];
+            
+            if (currentMode === 'games') {
+                // MODALITÀ GIOCO: Mostra tutte le opzioni e chiedi di trovarne una
+                let optionsHtml = activeEpisode.slides.map((s, idx) => `
+                    <div onclick="checkGameAnswer('${s.word}', this)" class="text-8xl cursor-pointer hover:scale-110 transition p-4 bg-white/10 rounded-3xl m-2">
+                        ${s.emoji}
+                    </div>
+                `).join('');
+                
+                stage.innerHTML = `
+                    <h2 class="text-4xl font-bold text-white mb-8">Dov'è ${slide.word}?</h2>
+                    <div class="flex flex-wrap justify-center gap-4">${optionsHtml}</div>
+                `;
+                speak(`Dov'è ${slide.word}?`);
+
+            } else {
+                // MODALITÀ TV o TOCCA
+                stage.innerHTML = `
+                    <div onclick="if(currentMode==='interactive' && !isLocked) playSlideVoice()" class="flex flex-col items-center cursor-pointer animate-breathe">
+                        <div class="text-[150px] leading-none mb-6 drop-shadow-2xl">${slide.emoji}</div>
+                        <div class="text-5xl font-extrabold text-white tracking-widest drop-shadow-md uppercase">${slide.word}</div>
+                        <div class="text-2xl font-bold text-[#F4D35E] mt-2">${slide.syllables}</div>
+                    </div>
+                `;
+
+                if(currentMode === 'tv') {
+                    playSlideVoice();
+                    setTimeout(() => {
+                        if(document.getElementById('playerOverlay').classList.contains('hidden')) return;
+                        nextSlide();
+                    }, 4000);
+                }
+            }
+        }
+
+        function playSlideVoice() {
+            const slide = activeEpisode.slides[slideIndex];
+            speak(slide.word + ". " + slide.syllables);
+        }
+
+        function checkGameAnswer(clickedWord, element) {
+            if(isLocked) return; // Se è bloccato non puoi cliccare
+            
+            const targetWord = activeEpisode.slides[slideIndex].word;
+            if (clickedWord === targetWord) {
+                createConfetti();
+                speak("Bravissima! È " + clickedWord);
+                setTimeout(nextSlide, 2500);
+            } else {
+                element.classList.add('animate-shake');
+                speak("Ops, riprova.");
+                setTimeout(() => element.classList.remove('animate-shake'), 500);
+            }
+        }
+
+        function nextSlide() {
+            slideIndex++;
+            if(slideIndex >= activeEpisode.slides.length) slideIndex = 0;
+            renderSlide();
+        }
+        function prevSlide() {
+            slideIndex--;
+            if(slideIndex < 0) slideIndex = activeEpisode.slides.length - 1;
+            renderSlide();
+        }
+
+        /* VOCE (Text-To-Speech) */
+        function speak(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            let msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'it-IT';
+            msg.rate = 0.85; // Più lento e dolce per i bimbi
+            msg.pitch = 1.2;
+            window.speechSynthesis.speak(msg);
+        }
+
+        /* LUCCHETTO 3 SECONDI */
+        const lockBtn = document.getElementById('parentLockBtn');
+        const lockCircle = document.getElementById('lockProgressCircle');
+        const touchShield = document.getElementById('touchShield');
+        const unlockedBar = document.getElementById('unlockedControlsBar');
+        let lockTimer = null;
+        
+        function relockScreen() {
+            isLocked = true;
+            touchShield.style.display = 'block';
+            unlockedBar.classList.add('hidden');
+            lockCircle.style.strokeDashoffset = "157";
+            document.getElementById('lockIconEmoji').innerText = "🔒";
+        }
+        
+        function unlockScreen() {
+            isLocked = false;
+            touchShield.style.display = 'none'; // Togli lo scudo
+            unlockedBar.classList.remove('hidden'); // Mostra controlli
+            document.getElementById('lockIconEmoji').innerText = "🔓";
+        }
+
+        function startUnlock(e) {
+            if(!isLocked) return;
+            e.preventDefault();
+            lockCircle.style.transition = "stroke-dashoffset 3s linear";
+            lockCircle.style.strokeDashoffset = "0";
+            lockTimer = setTimeout(() => {
+                unlockScreen();
+            }, 3000);
+        }
+        function cancelUnlock() {
+            clearTimeout(lockTimer);
+            if(isLocked) {
+                lockCircle.style.transition = "stroke-dashoffset 0.3s";
+                lockCircle.style.strokeDashoffset = "157";
+            }
+        }
+
+        lockBtn.addEventListener('mousedown', startUnlock);
+        lockBtn.addEventListener('touchstart', startUnlock);
+        window.addEventListener('mouseup', cancelUnlock);
+        window.addEventListener('touchend', cancelUnlock);
+
+        /* EFFETTI (Coriandoli) */
+        function createConfetti() {
+            const colors = ['#E07A5F', '#F4D35E', '#84A98C', '#A8DADC'];
+            for(let i=0; i<40; i++){
+                let conf = document.createElement('div');
+                conf.className = 'confetti-piece';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = '-20px';
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        /* SCARICAMENTO FILE PER GITHUB */
+        function downloadCode(type) {
+            let content = '';
+            let filename = '';
+            
+            if(type === 'html') {
+                content = document.documentElement.outerHTML;
+                filename = 'index.html';
+            } else if(type === 'manifest') {
+                content = `{"name":"BimbiParla TV","short_name":"BimbiParla","start_url":"./index.html","display":"fullscreen","background_color":"#FFFDF7","theme_color":"#E07A5F","icons":[{"src":"https://via.placeholder.com/192","sizes":"192x192","type":"image/png"}]}`;
+                filename = 'manifest.json';
+            } else if(type === 'sw') {
+                content = `self.addEventListener('install', (e) => { e.waitUntil(caches.open('v1').then(c => c.addAll(['./index.html']))); }); self.addEventListener('fetch', (e) => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))); });`;
+                filename = 'sw.js';
+            } else if(type === 'readme') {
+                content = `# BimbiParla TV\n\nCarica questi file su GitHub e attiva GitHub Pages nel tuo repository per usare l'app.`;
+                filename = 'README.md';
+            }
+
+            const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        window.onload = initApp;
     </script>
 </body>
 </html>
