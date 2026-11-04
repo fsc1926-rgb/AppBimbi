@@ -115,6 +115,9 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="document.getElementById('parentSettingsModal').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
+                    <span>⚙️</span> <span>Area Genitori</span>
+                </button>
                 <button onclick="document.getElementById('githubModal').classList.remove('hidden')" class="bg-[#2B2D42] hover:bg-slate-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
                     <span>📦</span> <span>Scarica App (GitHub)</span>
                 </button>
@@ -204,6 +207,34 @@
         </div>
     </div>
 
+    <!-- MODALE AREA GENITORI (YOUTUBE & VOCE) -->
+    <div id="parentSettingsModal" class="fixed inset-0 z-50 bg-[#2B2D42]/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="document.getElementById('parentSettingsModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F] z-10">✖</button>
+            <h2 class="font-display text-2xl font-bold text-[#2B2D42] mb-4">⚙️ Area Genitori</h2>
+            
+            <!-- SEZIONE YOUTUBE -->
+            <div class="bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 mb-5">
+                <h3 class="font-bold text-[#E07A5F] mb-2 flex items-center gap-2"><span>📺</span> Aggiungi Video YouTube</h3>
+                <p class="text-xs text-slate-500 mb-3">Incolla qui il link di un video sicuro (es. Lucilla, Cocomelon).</p>
+                <input type="text" id="ytLinkInput" placeholder="https://www.youtube.com/watch?v=..." class="w-full p-3 rounded-xl border-2 border-gray-200 mb-2 text-sm focus:border-[#E07A5F] outline-none">
+                <input type="text" id="ytTitleInput" placeholder="Nome del Cartone (es. Topolino)" class="w-full p-3 rounded-xl border-2 border-gray-200 mb-3 text-sm focus:border-[#E07A5F] outline-none">
+                <button onclick="addYouTubeVideo()" class="w-full bg-[#E07A5F] text-white font-bold py-2.5 rounded-xl shadow-sm">Aggiungi alla TV</button>
+                <div id="ytFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-600">Video Aggiunto!</div>
+            </div>
+
+            <!-- SEZIONE VOCE REGISTRATA -->
+            <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100">
+                <h3 class="font-bold text-emerald-700 mb-2 flex items-center gap-2"><span>🎙️</span> Voce Mamma/Papà</h3>
+                <p class="text-xs text-slate-600 mb-3">Registra la tua voce per quando la bimba vince un gioco (es. "Bravissima amore!"). Altrimenti l'app userà la voce di sistema.</p>
+                <button id="recordBtn" onclick="toggleRecordVoice()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
+                    <span id="recordBtnIcon">⏺️</span> <span id="recordBtnText">Registra Premio</span>
+                </button>
+                <div id="audioFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-700">Audio Salvato! Verrà usato nei giochi.</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         /* STATO DELL'APP */
         let currentMode = 'tv';
@@ -257,133 +288,18 @@
             }
         ];
 
+        /* VARIABILI PER REGISTRAZIONE VOCE */
+        let customRewardAudioData = localStorage.getItem('bimbiparla_reward_audio') || null;
+        let mediaRecorder;
+        let audioChunks = [];
+
         /* INIZIALIZZAZIONE */
         function initApp() {
             setAppMode('tv');
-        }
-
-        function setAppMode(mode) {
-            currentMode = mode;
-            // Aggiorna grafica pulsanti
-            ['tv', 'interactive', 'games'].forEach(m => {
-                let btn = document.getElementById('btn_' + m);
-                btn.className = `text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${
-                    mode === m ? (m==='tv'?'bg-[#E07A5F] text-white border-[#E07A5F]' : m==='interactive'?'bg-[#84A98C] text-white border-[#84A98C]':'bg-[#F4D35E] text-[#2B2D42] border-[#F4D35E]') 
-                    : 'bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]'
-                }`;
-            });
-            renderEpisodes();
-        }
-
-        function renderEpisodes() {
-            const grid = document.getElementById('episodesGrid');
-            grid.innerHTML = '';
-            
-            episodesData.forEach(ep => {
-                let btnColor = currentMode === 'tv' ? 'bg-[#E07A5F] text-white' : currentMode === 'interactive' ? 'bg-[#84A98C] text-white' : 'bg-[#F4D35E] text-[#2B2D42]';
-                let btnText = currentMode === 'tv' ? '📺 Avvia TV' : currentMode === 'interactive' ? '👆 Tocca & Parla' : '🎈 Gioca Ora';
-
-                let isDisabled = false;
-                if (ep.type === 'youtube') {
-                    btnColor = 'bg-[#E07A5F] text-white';
-                    btnText = '▶️ Guarda Video';
-                    // Blocca i video se non siamo in modalità TV, altrimenti i giochi non hanno senso
-                    if (currentMode === 'games' || currentMode === 'interactive') {
-                        btnColor = 'bg-gray-300 text-gray-500 cursor-not-allowed';
-                        btnText = '🚫 Solo in modalità TV';
-                        isDisabled = true;
-                    }
-                }
-
-                grid.innerHTML += `
-                    <div class="bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] flex flex-col h-full">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="text-4xl bg-gray-50 w-16 h-16 rounded-2xl flex items-center justify-center border-2 border-[#E8E2D5]">${ep.icon}</div>
-                            <h3 class="font-bold text-lg">${ep.title}</h3>
-                        </div>
-                        <button onclick="${isDisabled ? '' : `startEpisode('${ep.id}')`}" class="mt-auto w-full ${btnColor} font-bold py-3 rounded-xl transition active:scale-95">
-                            ${btnText}
-                        </button>
-                    </div>
-                `;
-            });
-        }
-
-        /* LOGICA PLAYER */
-        function startEpisode(id) {
-            activeEpisode = episodesData.find(e => e.id === id);
-            slideIndex = 0;
-            document.getElementById('playerEpIcon').innerText = activeEpisode.icon;
-            document.getElementById('playerEpTitle').innerText = activeEpisode.title;
-            
-            document.getElementById('playerOverlay').classList.remove('hidden');
-            document.getElementById('playerOverlay').classList.add('flex');
-            
-            relockScreen();
-            renderSlide();
-        }
-
-        function closePlayer() {
-            document.getElementById('playerOverlay').classList.add('hidden');
-            document.getElementById('playerOverlay').classList.remove('flex');
-            document.getElementById('interactiveStage').innerHTML = ''; // Ferma il video di youtube all'uscita
-        }
-
-        function renderSlide() {
-            const stage = document.getElementById('interactiveStage');
-            
-            // --- GESTIONE YOUTUBE ---
-            if (activeEpisode.type === 'youtube') {
-                document.getElementById('touchShield').style.zIndex = "45"; // Copre Youtube per non far cliccare i video correlati
-                document.getElementById('btnPrevSlide').style.display = "none";
-                document.getElementById('btnNextSlide').style.display = "none";
-                
-                stage.innerHTML = `
-                    <div class="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-2xl relative z-20">
-                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${activeEpisode.ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0&disablekb=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
-                `;
-                return; // Esce dalla funzione per non renderizzare i giochi
-            } else {
-                document.getElementById('touchShield').style.zIndex = "30"; // Lascia cliccare i giochi
-                document.getElementById('btnPrevSlide').style.display = "block";
-                document.getElementById('btnNextSlide').style.display = "block";
-            }
-            // --- FINE GESTIONE YOUTUBE ---
-
-            const slide = activeEpisode.slides[slideIndex];
-            
-            if (currentMode === 'games') {
-                // MODALITÀ GIOCO: Mostra tutte le opzioni e chiedi di trovarne una
-                let optionsHtml = activeEpisode.slides.map((s, idx) => `
-                    <div onclick="checkGameAnswer('${s.word}', this)" class="text-8xl cursor-pointer hover:scale-110 transition p-4 bg-white/10 rounded-3xl m-2">
-                        ${s.emoji}
-                    </div>
-                `).join('');
-                
-                stage.innerHTML = `
-                    <h2 class="text-4xl font-bold text-white mb-8">Dov'è ${slide.word}?</h2>
-                    <div class="flex flex-wrap justify-center gap-4">${optionsHtml}</div>
-                `;
-                speak(`Dov'è ${slide.word}?`);
-
-            } else {
-                // MODALITÀ TV o TOCCA (Rimosso il blocco del lucchetto)
-                stage.innerHTML = `
-                    <div onclick="if(currentMode==='interactive') playSlideVoice()" class="flex flex-col items-center cursor-pointer animate-breathe">
-                        <div class="text-[150px] leading-none mb-6 drop-shadow-2xl">${slide.emoji}</div>
-                        <div class="text-5xl font-extrabold text-white tracking-widest drop-shadow-md uppercase">${slide.word}</div>
-                        <div class="text-2xl font-bold text-[#F4D35E] mt-2">${slide.syllables}</div>
-                    </div>
-                `;
-
-                if(currentMode === 'tv') {
-                    playSlideVoice();
-                    setTimeout(() => {
-                        if(document.getElementById('playerOverlay').classList.contains('hidden')) return;
-                        nextSlide();
-                    }, 4000);
-                }
+            // Carica le voci in anticipo
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
             }
         }
 
@@ -397,7 +313,15 @@
             const targetWord = activeEpisode.slides[slideIndex].word;
             if (clickedWord === targetWord) {
                 createConfetti();
-                speak("Bravissima! È " + clickedWord);
+                
+                // Se c'è l'audio dei genitori, usa quello! Altrimenti voce robotica.
+                if (customRewardAudioData) {
+                    let audio = new Audio(customRewardAudioData);
+                    audio.play();
+                } else {
+                    speak("Bravissima! È " + clickedWord);
+                }
+                
                 setTimeout(nextSlide, 2500);
             } else {
                 element.classList.add('animate-shake');
@@ -405,19 +329,7 @@
                 setTimeout(() => element.classList.remove('animate-shake'), 500);
             }
         }
-
-        function nextSlide() {
-            slideIndex++;
-            if(slideIndex >= activeEpisode.slides.length) slideIndex = 0;
-            renderSlide();
-        }
-        function prevSlide() {
-            slideIndex--;
-            if(slideIndex < 0) slideIndex = activeEpisode.slides.length - 1;
-            renderSlide();
-        }
-
-        /* VOCE (Text-To-Speech) */
+        /* VOCE (Text-To-Speech) MIGLIORATA */
         function speak(text) {
             if (!('speechSynthesis' in window)) return;
             window.speechSynthesis.cancel();
@@ -425,7 +337,96 @@
             msg.lang = 'it-IT';
             msg.rate = 0.85; // Più lento e dolce per i bimbi
             msg.pitch = 1.2;
+
+            // Cerca la voce migliore sul telefono (meno robotica)
+            let voices = window.speechSynthesis.getVoices();
+            let itVoices = voices.filter(v => v.lang.startsWith('it'));
+            let bestVoice = itVoices.find(v => 
+                v.name.toLowerCase().includes('premium') || 
+                v.name.toLowerCase().includes('samantha') || 
+                v.name.toLowerCase().includes('natural') || 
+                v.name.toLowerCase().includes('google')
+            );
+            if (bestVoice) {
+                msg.voice = bestVoice;
+            } else if (itVoices.length > 0) {
+                msg.voice = itVoices[0];
+            }
+
             window.speechSynthesis.speak(msg);
+        }
+
+        /* FUNZIONI YOUTUBE */
+        function addYouTubeVideo() {
+            const link = document.getElementById('ytLinkInput').value;
+            const title = document.getElementById('ytTitleInput').value || 'Nuovo Video';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = link.match(regExp);
+
+            if (match && match[2].length === 11) {
+                episodesData.push({
+                    id: 'yt_' + Date.now(),
+                    icon: '📺',
+                    title: title,
+                    color: '#E07A5F',
+                    type: 'youtube',
+                    ytId: match[2]
+                });
+                renderEpisodes();
+                document.getElementById('ytLinkInput').value = '';
+                document.getElementById('ytTitleInput').value = '';
+                
+                const fb = document.getElementById('ytFeedback');
+                fb.classList.remove('hidden');
+                setTimeout(() => fb.classList.add('hidden'), 3000);
+            }
+        }
+
+        /* FUNZIONI REGISTRAZIONE VOCE */
+        async function toggleRecordVoice() {
+            const btn = document.getElementById('recordBtn');
+            const btnText = document.getElementById('recordBtnText');
+            const btnIcon = document.getElementById('recordBtnIcon');
+
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            customRewardAudioData = reader.result;
+                            try {
+                                localStorage.setItem('bimbiparla_reward_audio', customRewardAudioData);
+                                const fb = document.getElementById('audioFeedback');
+                                fb.classList.remove('hidden');
+                                setTimeout(() => fb.classList.add('hidden'), 4000);
+                            } catch(e) {
+                                console.error("Memoria piena o registrazione troppo lunga");
+                            }
+                        }
+                    };
+                    
+                    audioChunks = [];
+                    mediaRecorder.start();
+                    btn.classList.replace('bg-emerald-600', 'bg-red-500');
+                    btnText.innerText = "Registrazione in corso... (Clicca per Stop)";
+                    btnIcon.innerText = "🔴";
+                    
+                } catch (err) {
+                    console.error("Errore microfono: ", err);
+                }
+            } else {
+                mediaRecorder.stop();
+                btn.classList.replace('bg-red-500', 'bg-emerald-600');
+                btnText.innerText = "Registra un altro premio";
+                btnIcon.innerText = "🎙️";
+            }
         }
 
         /* LUCCHETTO 3 SECONDI */
