@@ -34,12 +34,29 @@
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
-        html, body {
+        html {
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        body {
             font-family: 'Nunito', sans-serif;
             background-color: var(--bg-cream);
             color: var(--deep-slate);
             overflow-x: hidden;
-            overscroll-behavior: none;
+            overflow-y: auto;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            min-height: 100dvh;
+        }
+        body.player-open {
+            overflow: hidden;
+            touch-action: none;
+        }
+        /* Consente sempre lo scorrimento touch verticale nei menu e nella home */
+        main, #episodesGrid, #parentSettingsModal, #socialFeedContainer {
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
         }
         h1, h2, h3, .font-display {
             font-family: 'Quicksand', sans-serif;
@@ -101,11 +118,11 @@
 <body class="min-h-screen flex flex-col justify-between selection:bg-amber-200">
 
     <!-- HEADER -->
-    <header class="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur-md border-b-2 border-[#E8E2D5] px-3.5 py-3 sm:px-6">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E07A5F] via-[#F4A261] to-[#F4D35E] flex items-center justify-center shadow-md border-2 border-white shrink-0">
-                    <svg class="w-9 h-9" viewBox="0 0 80 80">
+    <header class="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur-md border-b-2 border-[#E8E2D5] px-3 py-2 sm:px-6 sm:py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#E07A5F] via-[#F4A261] to-[#F4D35E] flex items-center justify-center shadow-md border-2 border-white shrink-0">
+                    <svg class="w-7 h-7 sm:w-9 sm:h-9" viewBox="0 0 80 80">
                         <circle cx="40" cy="42" r="28" fill="#FFFDF7"/>
                         <circle cx="30" cy="36" r="4.5" fill="#2B2D42"/>
                         <circle cx="50" cy="36" r="4.5" fill="#2B2D42"/>
@@ -114,55 +131,55 @@
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <h1 class="font-display text-xl font-bold text-[#2B2D42] tracking-tight">
+                        <h1 class="font-display text-base sm:text-xl font-bold text-[#2B2D42] tracking-tight leading-tight">
                             BimbiParla <span class="text-[#E07A5F]">TV</span>
                         </h1>
                     </div>
                     <p class="text-xs text-slate-500 font-semibold hidden sm:block">Scudo Anti-Tocco & Giochi Educativi</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <!-- NUOVO PULSANTE INSTALLA APP (Nascosto di default) -->
-                <button id="installAppBtn" onclick="installApp()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
-                    <span>📱</span> <span>Installa App</span>
+                <button id="installAppBtn" onclick="installApp()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition">
+                    <span>📱</span> <span>Installa</span>
                 </button>
-                <button onclick="openParentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
-                    <span>⚙️</span> <span>Area Genitori</span>
+                <button onclick="openParentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition">
+                    <span>⚙️</span> <span>Genitori</span>
                 </button>
-                <button onclick="document.getElementById('githubModal').classList.remove('hidden')" class="bg-[#2B2D42] hover:bg-slate-700 text-white font-extrabold px-3.5 py-2 rounded-2xl text-xs shadow-sm flex items-center gap-1.5 transition">
-                    <span>📦</span> <span>Scarica App (GitHub)</span>
+                <button onclick="document.getElementById('githubModal').classList.remove('hidden')" class="bg-[#2B2D42] hover:bg-slate-700 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition">
+                    <span>📦</span> <span class="hidden xs:inline sm:inline">GitHub</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- MAIN -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-3.5 py-5 sm:px-6">
-        <!-- MODALITÀ -->
-        <section class="mb-6 bg-white rounded-3xl p-4 border-2 border-[#E8E2D5] shadow-sm">
-            <h2 class="font-display text-lg font-bold text-[#2B2D42] mb-3">Scegli la modalità:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                <button onclick="setAppMode('tv')" id="btn_tv" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#E07A5F] text-white border-[#E07A5F]">
-                    <span class="text-2xl bg-white/20 p-2 rounded-xl">📺</span>
-                    <div><div class="font-extrabold text-sm">TV Continua</div><div class="text-[11px] opacity-90">Cartoni bloccati</div></div>
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-3 sm:px-6 sm:py-5 pb-12">
+        <!-- MODALITÀ (Griglia 2x2 compatta su smartphone, 4 colonne su desktop) -->
+        <section class="mb-4 sm:mb-6 bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 border-2 border-[#E8E2D5] shadow-sm">
+            <h2 class="font-display text-sm sm:text-lg font-bold text-[#2B2D42] mb-2 sm:mb-3 px-1">Scegli la modalità:</h2>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+                <button onclick="setAppMode('tv')" id="btn_tv" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#E07A5F] text-white border-[#E07A5F]">
+                    <span class="text-lg sm:text-2xl bg-white/20 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">📺</span>
+                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">TV Continua</div><div class="text-[10px] sm:text-[11px] opacity-90 truncate">Cartoni bloccati</div></div>
                 </button>
-                <button onclick="setAppMode('interactive')" id="btn_interactive" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
-                    <span class="text-2xl bg-[#84A98C]/20 p-2 rounded-xl">👆</span>
-                    <div><div class="font-extrabold text-sm">Tocca & Parla</div><div class="text-[11px] text-slate-500">Esplora i suoni</div></div>
+                <button onclick="setAppMode('interactive')" id="btn_interactive" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
+                    <span class="text-lg sm:text-2xl bg-[#84A98C]/20 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">👆</span>
+                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Tocca & Parla</div><div class="text-[10px] sm:text-[11px] text-slate-500 truncate">Esplora i suoni</div></div>
                 </button>
-                <button onclick="setAppMode('games')" id="btn_games" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
-                    <span class="text-2xl bg-[#F4D35E]/30 p-2 rounded-xl">🎈</span>
-                    <div><div class="font-extrabold text-sm">Sala Giochi</div><div class="text-[11px] text-slate-500">Trova Colori/Animali</div></div>
+                <button onclick="setAppMode('games')" id="btn_games" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
+                    <span class="text-lg sm:text-2xl bg-[#F4D35E]/30 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">🎈</span>
+                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Sala Giochi</div><div class="text-[10px] sm:text-[11px] text-slate-500 truncate">Trova Colori/Animali</div></div>
                 </button>
-                <button onclick="setAppMode('social')" id="btn_social" class="text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
-                    <span class="text-2xl bg-[#A8DADC]/40 p-2 rounded-xl">📱</span>
-                    <div><div class="font-extrabold text-sm">Social</div><div class="text-[11px] text-slate-500">Scorri stile TikTok</div></div>
+                <button onclick="setAppMode('social')" id="btn_social" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
+                    <span class="text-lg sm:text-2xl bg-[#A8DADC]/40 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">📱</span>
+                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Social</div><div class="text-[10px] sm:text-[11px] text-slate-500 truncate">Scorri stile TikTok</div></div>
                 </button>
             </div>
         </section>
 
         <!-- EPISODI -->
-        <div id="episodesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        <div id="episodesGrid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5"></div>
     </main>
 
     <!-- PLAYER -->
@@ -496,7 +513,7 @@
             modes.forEach(m => {
                 const btn = document.getElementById('btn_' + m);
                 if (!btn) return;
-                btn.className = `text-left p-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${m === mode ? activeColors[m] : inactiveClass}`;
+                btn.className = `text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 ${m === mode ? activeColors[m] : inactiveClass}`;
             });
 
             renderEpisodes();
@@ -512,11 +529,11 @@
                 if (ytVideos.length === 0) {
                     grid.className = "w-full";
                     grid.innerHTML = `
-                        <div class="bg-white rounded-3xl p-8 border-2 border-[#E8E2D5] text-center shadow-sm max-w-lg mx-auto my-4">
-                            <div class="text-6xl mb-4">📱</div>
-                            <h3 class="font-display text-2xl font-bold text-[#2B2D42] mb-2">Il tuo Feed Social è vuoto!</h3>
-                            <p class="text-sm text-slate-600 mb-6">Aggiungi i video che preferisci (es. Lucilla, cartoni, canzoncine) dall'Area Genitori per creare il tuo feed scorrevole sicuro stile Reels/TikTok.</p>
-                            <button onclick="openParentModal()" class="bg-[#E07A5F] hover:bg-[#d0694e] text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-md transition">
+                        <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-[#E8E2D5] text-center shadow-sm max-w-lg mx-auto my-2">
+                            <div class="text-5xl sm:text-6xl mb-3">📱</div>
+                            <h3 class="font-display text-xl sm:text-2xl font-bold text-[#2B2D42] mb-2">Il tuo Feed Social è vuoto!</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 mb-5">Aggiungi i video che preferisci (es. Lucilla, cartoni, canzoncine) dall'Area Genitori per creare il tuo feed scorrevole sicuro stile Reels/TikTok.</p>
+                            <button onclick="openParentModal()" class="bg-[#E07A5F] hover:bg-[#d0694e] text-white font-extrabold px-5 py-3 rounded-2xl shadow-md transition text-sm">
                                 ➕ Aggiungi il primo Video
                             </button>
                         </div>
@@ -524,26 +541,26 @@
                     return;
                 }
 
-                grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5";
+                grid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-3.5";
                 grid.innerHTML = ytVideos.map((v, idx) => `
-                    <div onclick="openSocialFeed(${idx})" class="group relative aspect-[9/16] rounded-3xl overflow-hidden bg-slate-900 shadow-md cursor-pointer border-2 border-white hover:scale-[1.02] transition-all">
+                    <div onclick="openSocialFeed(${idx})" class="group relative aspect-[9/16] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md cursor-pointer border-2 border-white active:scale-95 transition-all">
                         <img src="https://img.youtube.com/vi/${v.ytId}/hqdefault.jpg" alt="${v.title}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition" onerror="this.src='https://placehold.co/400x700/2B2D42/FFFDF7?text=Video'">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-between p-3.5">
-                            <div class="self-end bg-black/50 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-between p-2.5 sm:p-3.5">
+                            <div class="self-end bg-black/50 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">
                                 📱 Reel #${idx + 1}
                             </div>
-                            <div class="w-12 h-12 rounded-full bg-white/90 text-[#E07A5F] flex items-center justify-center self-center shadow-lg text-xl pl-0.5">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 text-[#E07A5F] flex items-center justify-center self-center shadow-lg text-base sm:text-xl pl-0.5">
                                 ▶
                             </div>
-                            <div class="text-white font-extrabold text-sm line-clamp-2 drop-shadow">${v.title}</div>
+                            <div class="text-white font-extrabold text-xs sm:text-sm line-clamp-2 drop-shadow">${v.title}</div>
                         </div>
                     </div>
                 `).join('');
                 return;
             }
 
-            // MODALITÀ STANDARD (TV, Tocca & Parla, Sala Giochi)
-            grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
+            // MODALITÀ STANDARD (2 colonne compatte su smartphone così entrano tutte nello schermo, 4 su desktop)
+            grid.className = "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5";
             const modeBtnLabels = {
                 tv: { text: '📺 Avvia TV', bg: 'bg-[#E07A5F] text-white' },
                 interactive: { text: '👆 Tocca & Parla', bg: 'bg-[#84A98C] text-white' },
@@ -555,20 +572,20 @@
             const visibleEpisodes = episodesData.filter(ep => ep.type === 'interactive' || (ep.type === 'youtube' && currentMode === 'tv'));
 
             grid.innerHTML = visibleEpisodes.map(ep => `
-                <div onclick="openEpisode('${ep.id}')" class="bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between">
+                <div onclick="openEpisode('${ep.id}')" class="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-2 border-[#E8E2D5] shadow-sm hover:shadow-md active:scale-[0.98] transition-all cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-5xl p-3 rounded-2xl" style="background-color: ${ep.color}25">${ep.icon}</span>
-                            <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-slate-100 text-slate-600">
-                                ${ep.type === 'youtube' ? 'Video YouTube' : ep.slides.length + ' Parole'}
+                        <div class="flex items-center justify-between gap-1 mb-2 sm:mb-4">
+                            <span class="text-3xl sm:text-5xl p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0" style="background-color: ${ep.color}25">${ep.icon}</span>
+                            <span class="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 text-slate-600 truncate">
+                                ${ep.type === 'youtube' ? 'YouTube' : ep.slides.length + ' Parole'}
                             </span>
                         </div>
-                        <h3 class="font-display text-xl font-bold text-[#2B2D42] mb-1">${ep.title}</h3>
-                        <p class="text-xs text-slate-500 mb-5">
+                        <h3 class="font-display text-sm sm:text-xl font-bold text-[#2B2D42] mb-1 leading-snug line-clamp-2">${ep.title}</h3>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-5 hidden sm:block">
                             ${ep.type === 'youtube' ? 'Riproduzione protetta con Scudo Anti-Tocco' : 'Impara sillabe, suoni e parole giocando'}
                         </p>
                     </div>
-                    <button class="w-full py-3 rounded-2xl font-extrabold text-sm shadow-sm transition ${btnStyle.bg}">
+                    <button class="w-full py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-xs sm:text-sm shadow-sm transition ${btnStyle.bg}">
                         ${btnStyle.text}
                     </button>
                 </div>
@@ -580,6 +597,7 @@
             if (ytVideos.length === 0) return;
 
             activeEpisode = { type: 'social_feed', title: 'Social Reels', icon: '📱' };
+            document.body.classList.add('player-open');
             document.getElementById('playerEpIcon').innerText = '📱';
             document.getElementById('playerEpTitle').innerText = 'Social Feed';
             document.getElementById('playerOverlay').classList.remove('hidden');
@@ -627,6 +645,7 @@
             activeEpisode = ep;
             slideIndex = 0;
 
+            document.body.classList.add('player-open');
             document.getElementById('playerEpIcon').innerText = ep.icon;
             document.getElementById('playerEpTitle').innerText = ep.title;
             document.getElementById('playerOverlay').classList.remove('hidden');
@@ -681,16 +700,16 @@
                 const choices = [slide, ...shuffledOthers].sort(() => 0.5 - Math.random());
 
                 stage.innerHTML = `
-                    <div class="animate-fade-in w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-[#F4D35E]">
-                        <div class="text-xs font-extrabold uppercase tracking-wider text-amber-600 mb-1">🎈 Sala Giochi Interattiva</div>
-                        <h2 class="font-display text-2xl sm:text-4xl font-extrabold text-[#2B2D42] mb-6">
+                    <div class="animate-fade-in w-full max-w-xl bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-8 shadow-2xl border-4 border-[#F4D35E]">
+                        <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-amber-600 mb-1">🎈 Sala Giochi Interattiva</div>
+                        <h2 class="font-display text-xl sm:text-4xl font-extrabold text-[#2B2D42] mb-4 sm:mb-6">
                             Tocca: <span class="text-[#E07A5F] underline">${slide.word}</span>!
                         </h2>
-                        <div class="grid grid-cols-3 gap-4 sm:gap-6">
+                        <div class="grid grid-cols-3 gap-2.5 sm:gap-6">
                             ${choices.map(c => `
-                                <button onclick="checkGameAnswer(this, '${c.word}', '${slide.word}')" class="aspect-square rounded-3xl bg-[#FFFDF7] hover:bg-amber-50 border-4 border-[#E8E2D5] shadow-md flex flex-col items-center justify-center p-4 transition transform active:scale-95">
-                                    <span class="text-6xl sm:text-7xl mb-2 select-none">${c.emoji}</span>
-                                    <span class="font-extrabold text-sm sm:text-base text-[#2B2D42]">${c.word}</span>
+                                <button onclick="checkGameAnswer(this, '${c.word}', '${slide.word}')" class="aspect-square rounded-2xl sm:rounded-3xl bg-[#FFFDF7] hover:bg-amber-50 border-3 sm:border-4 border-[#E8E2D5] shadow-md flex flex-col items-center justify-center p-2 sm:p-4 transition transform active:scale-95">
+                                    <span class="text-4xl sm:text-7xl mb-1 sm:mb-2 select-none">${c.emoji}</span>
+                                    <span class="font-extrabold text-xs sm:text-base text-[#2B2D42] truncate w-full text-center">${c.word}</span>
                                 </button>
                             `).join('')}
                         </div>
@@ -702,14 +721,14 @@
 
             // MODALITÀ TV O TOCCA & PARLA
             stage.innerHTML = `
-                <div onclick="triggerSlideVoice()" class="animate-fade-in cursor-pointer bg-white/95 backdrop-blur-md rounded-3xl p-8 sm:p-12 shadow-2xl border-4 border-white max-w-lg w-full flex flex-col items-center justify-center transition transform active:scale-95">
-                    <div class="text-8xl sm:text-9xl mb-6 animate-breathe select-none">${slide.emoji}</div>
+                <div onclick="triggerSlideVoice()" class="animate-fade-in cursor-pointer bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-12 shadow-2xl border-4 border-white max-w-md sm:max-w-lg w-full flex flex-col items-center justify-center transition transform active:scale-95">
+                    <div class="text-7xl sm:text-9xl mb-4 sm:mb-6 animate-breathe select-none">${slide.emoji}</div>
                     <div class="text-xs font-extrabold uppercase tracking-widest text-[#84A98C] mb-1">${slide.syllables}</div>
-                    <h2 class="font-display text-4xl sm:text-5xl font-black text-[#2B2D42] mb-3">${slide.word}</h2>
-                    <div class="bg-[#F4D35E]/30 text-[#2B2D42] font-extrabold px-5 py-2 rounded-full text-lg">
+                    <h2 class="font-display text-3xl sm:text-5xl font-black text-[#2B2D42] mb-2 sm:mb-3">${slide.word}</h2>
+                    <div class="bg-[#F4D35E]/30 text-[#2B2D42] font-extrabold px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-base sm:text-lg">
                         🔊 "${slide.sound}"
                     </div>
-                    <p class="text-[11px] text-slate-400 font-bold mt-5">👆 Tocca la figura per riascoltare</p>
+                    <p class="text-[11px] text-slate-400 font-bold mt-4 sm:mt-5">👆 Tocca la figura per riascoltare</p>
                 </div>
             `;
 
@@ -768,6 +787,7 @@
             if (sleepTimer) clearTimeout(sleepTimer);
             if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             releaseWakeLock();
+            document.body.classList.remove('player-open');
 
             const feed = document.getElementById('socialFeedContainer');
             feed.innerHTML = '';
@@ -1143,6 +1163,7 @@
                     short_name: "BimbiParla",
                     start_url: "./index.html",
                     display: "fullscreen",
+                    orientation: "any",
                     background_color: "#FFFDF7",
                     theme_color: "#E07A5F"
                 }, null, 2);
