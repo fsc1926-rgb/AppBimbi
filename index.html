@@ -170,10 +170,10 @@
 
             <!-- CONTROLLI GENITORE -->
             <div id="unlockedControlsBar" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-[#2B2D42]/95 text-white px-4 py-3 rounded-3xl flex gap-2">
-                <button onclick="prevSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Indietro</button>
+                <button id="btnPrevSlide" onclick="prevSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Indietro</button>
                 <button onclick="relockScreen()" class="bg-emerald-600 px-3 py-2 rounded-xl font-bold">Riblocca</button>
                 <button onclick="closePlayer()" class="bg-[#E07A5F] px-3.5 py-2 rounded-xl font-bold">Esci</button>
-                <button onclick="nextSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Avanti</button>
+                <button id="btnNextSlide" onclick="nextSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Avanti</button>
             </div>
 
             <!-- LUCCHETTO 3 SECONDI -->
@@ -214,20 +214,46 @@
         /* DATABASE EPISODI */
         const episodesData = [
             {
-                id: 'fattoria', icon: '🐮', title: 'La Fattoria dei Versi', color: '#84A98C',
+                id: 'fattoria', icon: '🐮', title: 'La Fattoria dei Versi', color: '#84A98C', type: 'interactive',
                 slides: [
                     { emoji: '🐮', word: 'Mucca', syllables: 'MUU - CCA', sound: 'Muuu' },
                     { emoji: '🐷', word: 'Maiale', syllables: 'MA - IA - LE', sound: 'Oink Oink' },
-                    { emoji: '🐔', word: 'Gallina', syllables: 'GAL - LI - NA', sound: 'Coccodè' }
+                    { emoji: '🐔', word: 'Gallina', syllables: 'GAL - LI - NA', sound: 'Coccodè' },
+                    { emoji: '🐑', word: 'Pecora', syllables: 'PE - CO - RA', sound: 'Beee' }
                 ]
             },
             {
-                id: 'colori', icon: '🎈', title: 'I Colori Base', color: '#F4D35E',
+                id: 'colori', icon: '🎈', title: 'I Colori Base', color: '#F4D35E', type: 'interactive',
                 slides: [
                     { emoji: '🔴', word: 'Rosso', syllables: 'ROS - SO', sound: 'Rosso!' },
                     { emoji: '🔵', word: 'Blu', syllables: 'B - LU', sound: 'Blu!' },
-                    { emoji: '🟡', word: 'Giallo', syllables: 'GIAL - LO', sound: 'Giallo!' }
+                    { emoji: '🟡', word: 'Giallo', syllables: 'GIAL - LO', sound: 'Giallo!' },
+                    { emoji: '🟢', word: 'Verde', syllables: 'VER - DE', sound: 'Verde!' }
                 ]
+            },
+            {
+                id: 'numeri', icon: '🔢', title: 'I Primi Numeri', color: '#A8DADC', type: 'interactive',
+                slides: [
+                    { emoji: '1️⃣', word: 'Uno', syllables: 'U - NO', sound: 'Uno!' },
+                    { emoji: '2️⃣', word: 'Due', syllables: 'DU - E', sound: 'Due!' },
+                    { emoji: '3️⃣', word: 'Tre', syllables: 'T - RE', sound: 'Tre!' }
+                ]
+            },
+            {
+                id: 'veicoli', icon: '🚂', title: 'I Veicoli', color: '#E07A5F', type: 'interactive',
+                slides: [
+                    { emoji: '🚂', word: 'Treno', syllables: 'TRE - NO', sound: 'Ciuf Ciuf!' },
+                    { emoji: '🚗', word: 'Auto', syllables: 'AU - TO', sound: 'Brum Brum!' },
+                    { emoji: '🚒', word: 'Pompieri', syllables: 'POM - PIE - RI', sound: 'Nino Nino!' }
+                ]
+            },
+            {
+                id: 'lucilla_canta', icon: '🎵', title: 'Lucilla - Canta con me', color: '#F4D35E', type: 'youtube',
+                ytId: 'M7lc1UVf-VE' /* SOSTITUISCI QUESTO ID con quello di un video reale di Lucilla (es: dQw4w9WgXcQ) */
+            },
+            {
+                id: 'lucilla_balla', icon: '💃', title: 'Lucilla - Balliamo', color: '#E07A5F', type: 'youtube',
+                ytId: 'e2k2NqF8T9Q' /* SOSTITUISCI QUESTO ID con quello di un video reale di Lucilla */
             }
         ];
 
@@ -257,13 +283,25 @@
                 let btnColor = currentMode === 'tv' ? 'bg-[#E07A5F] text-white' : currentMode === 'interactive' ? 'bg-[#84A98C] text-white' : 'bg-[#F4D35E] text-[#2B2D42]';
                 let btnText = currentMode === 'tv' ? '📺 Avvia TV' : currentMode === 'interactive' ? '👆 Tocca & Parla' : '🎈 Gioca Ora';
 
+                let isDisabled = false;
+                if (ep.type === 'youtube') {
+                    btnColor = 'bg-[#E07A5F] text-white';
+                    btnText = '▶️ Guarda Video';
+                    // Blocca i video se non siamo in modalità TV, altrimenti i giochi non hanno senso
+                    if (currentMode === 'games' || currentMode === 'interactive') {
+                        btnColor = 'bg-gray-300 text-gray-500 cursor-not-allowed';
+                        btnText = '🚫 Solo in modalità TV';
+                        isDisabled = true;
+                    }
+                }
+
                 grid.innerHTML += `
                     <div class="bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] flex flex-col h-full">
                         <div class="flex items-center gap-4 mb-4">
                             <div class="text-4xl bg-gray-50 w-16 h-16 rounded-2xl flex items-center justify-center border-2 border-[#E8E2D5]">${ep.icon}</div>
                             <h3 class="font-bold text-lg">${ep.title}</h3>
                         </div>
-                        <button onclick="startEpisode('${ep.id}')" class="mt-auto w-full ${btnColor} font-bold py-3 rounded-xl transition active:scale-95">
+                        <button onclick="${isDisabled ? '' : `startEpisode('${ep.id}')`}" class="mt-auto w-full ${btnColor} font-bold py-3 rounded-xl transition active:scale-95">
                             ${btnText}
                         </button>
                     </div>
@@ -288,10 +326,31 @@
         function closePlayer() {
             document.getElementById('playerOverlay').classList.add('hidden');
             document.getElementById('playerOverlay').classList.remove('flex');
+            document.getElementById('interactiveStage').innerHTML = ''; // Ferma il video di youtube all'uscita
         }
 
         function renderSlide() {
             const stage = document.getElementById('interactiveStage');
+            
+            // --- GESTIONE YOUTUBE ---
+            if (activeEpisode.type === 'youtube') {
+                document.getElementById('touchShield').style.zIndex = "45"; // Copre Youtube per non far cliccare i video correlati
+                document.getElementById('btnPrevSlide').style.display = "none";
+                document.getElementById('btnNextSlide').style.display = "none";
+                
+                stage.innerHTML = `
+                    <div class="w-full max-w-4xl aspect-video rounded-3xl overflow-hidden shadow-2xl relative z-20">
+                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${activeEpisode.ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0&disablekb=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                `;
+                return; // Esce dalla funzione per non renderizzare i giochi
+            } else {
+                document.getElementById('touchShield').style.zIndex = "30"; // Lascia cliccare i giochi
+                document.getElementById('btnPrevSlide').style.display = "block";
+                document.getElementById('btnNextSlide').style.display = "block";
+            }
+            // --- FINE GESTIONE YOUTUBE ---
+
             const slide = activeEpisode.slides[slideIndex];
             
             if (currentMode === 'games') {
