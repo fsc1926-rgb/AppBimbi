@@ -160,12 +160,12 @@
                     </div>
                 </div>
 
-                <!-- STAGE (Dove appaiono animali e colori) -->
-                <div id="interactiveStage" class="relative z-10 w-full max-w-5xl px-4 flex flex-col items-center justify-center text-center mt-6"></div>
+                <!-- STAGE (Dove appaiono animali e colori): Ho alzato lo z-index a 40 per superare lo scudo -->
+                <div id="interactiveStage" class="relative z-40 w-full max-w-5xl px-4 flex flex-col items-center justify-center text-center mt-6"></div>
 
             </div>
 
-            <!-- SCUDO INVISIBILE -->
+            <!-- SCUDO INVISIBILE (z-30): Copre lo sfondo ma lascia scoperti gli animali -->
             <div id="touchShield" class="fixed inset-0 z-30 cursor-default"></div>
 
             <!-- CONTROLLI GENITORE -->
@@ -309,9 +309,9 @@
                 speak(`Dov'è ${slide.word}?`);
 
             } else {
-                // MODALITÀ TV o TOCCA
+                // MODALITÀ TV o TOCCA (Rimosso il blocco del lucchetto)
                 stage.innerHTML = `
-                    <div onclick="if(currentMode==='interactive' && !isLocked) playSlideVoice()" class="flex flex-col items-center cursor-pointer animate-breathe">
+                    <div onclick="if(currentMode==='interactive') playSlideVoice()" class="flex flex-col items-center cursor-pointer animate-breathe">
                         <div class="text-[150px] leading-none mb-6 drop-shadow-2xl">${slide.emoji}</div>
                         <div class="text-5xl font-extrabold text-white tracking-widest drop-shadow-md uppercase">${slide.word}</div>
                         <div class="text-2xl font-bold text-[#F4D35E] mt-2">${slide.syllables}</div>
@@ -333,9 +333,8 @@
             speak(slide.word + ". " + slide.syllables);
         }
 
+        // Corretto: ora la bimba può dare la risposta ANCHE a schermo bloccato!
         function checkGameAnswer(clickedWord, element) {
-            if(isLocked) return; // Se è bloccato non puoi cliccare
-            
             const targetWord = activeEpisode.slides[slideIndex].word;
             if (clickedWord === targetWord) {
                 createConfetti();
