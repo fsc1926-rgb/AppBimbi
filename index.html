@@ -181,6 +181,9 @@
                 <!-- STAGE (Dove appaiono animali e colori): Ho alzato lo z-index a 40 per superare lo scudo -->
                 <div id="interactiveStage" class="relative z-40 w-full max-w-5xl px-4 flex flex-col items-center justify-center text-center mt-6"></div>
 
+                <!-- FEED SOCIAL (TikTok Style) -->
+                <div id="socialFeedContainer" class="hidden absolute inset-0 z-35 overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-black"></div>
+
             </div>
 
             <!-- SCUDO INVISIBILE (z-30): Copre lo sfondo ma lascia scoperti gli animali -->
@@ -193,6 +196,11 @@
                 <button onclick="closePlayer()" class="bg-[#E07A5F] px-3.5 py-2 rounded-xl font-bold">Esci</button>
                 <button id="btnNextSlide" onclick="nextSlide()" class="bg-slate-700 px-3 py-2 rounded-xl">Avanti</button>
             </div>
+
+            <!-- TASTO ESCI SUBDOLO IN ALTO A SINISTRA (Appare solo a lucchetto sbloccato) -->
+            <button id="secretExitBtn" onclick="closePlayer()" class="hidden fixed top-4 left-4 z-50 bg-black/30 hover:bg-black/60 text-white/70 px-4 py-2 rounded-2xl text-xs font-bold backdrop-blur-sm border border-white/20 transition-all">
+                ✖ Esci
+            </button>
 
             <!-- LUCCHETTO 3 SECONDI -->
             <div class="fixed top-3 right-3 z-50">
@@ -343,6 +351,20 @@
         let sleepTimer = null;
         let sleepDurationMs = 0;
         
+        /* OBSERVER PER SOCIAL FEED (Autoplay/Pause al tocco) */
+        const socialObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const iframe = entry.target.querySelector('iframe');
+                if(iframe && iframe.contentWindow) {
+                    if (entry.isIntersecting) {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                    } else {
+                        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    }
+                }
+            });
+        }, { threshold: 0.6 });
+        
         /* WAKE LOCK (Schermo Acceso) */
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
@@ -419,46 +441,71 @@
         function renderEpisodes() {
             const grid = document.getElementById('episodesGrid');
             grid.innerHTML = '';
-            episodesData.forEach(ep => {
-                let btnColor = ep.color;
-                let btnText = "Avvia";
-                let isDisabled = false;
-
-                if (currentMode === 'tv') {
-                    btnColor = '#E07A5F';
-                    btnText = "📺 Avvia TV";
-                } else if (currentMode === 'interactive') {
-                    btnColor = '#84A98C';
-                    btnText = "👆 Tocca & Parla";
-                    if(ep.type === 'youtube') isDisabled = true;
-                } else if (currentMode === 'games') {
-                    btnColor = '#F4D35E';
-                    btnText = "🎈 Gioca Ora";
-                    if(ep.type === 'youtube') isDisabled = true;
-                } else if (currentMode === 'social') {
-                    btnColor = '#A8DADC';
-                    btnText = "📱 Apri Social";
-                    if(ep.type !== 'youtube') isDisabled = true;
-                }
-
-                let disabledText = currentMode === 'social' ? 'Solo Video' : 'Solo Modalità TV';
-                const opacity = isDisabled ? 'opacity-50 grayscale' : 'hover:-translate-y-1 hover:shadow-lg';
-
-                const card = document.createElement('div');
-                card.className = `bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] shadow-sm transition-all duration-300 flex flex-col items-center text-center gap-3 cursor-pointer ${opacity}`;
-                if(!isDisabled) {
-                    card.onclick = () => openEpisode(ep.id);
+            
+            if (currentMode === 'social') {
+                // STILE SOCIAL: Griglia stile Profilo TikTok/Reels (Nasconde i moduli educativi)
+                grid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4';
+                const ytVideos = episodesData.filter(e => e.type === 'youtube');
+                
+                if (ytVideos.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-12 px-4 bg-white rounded-3xl border-2 border-[#E8E2D5]"><div class="text-5xl mb-4 animate-breathe">📱</div><h3 class="font-display font-bold text-xl text-[#2B2D42] mb-2">Nessun video Social</h3><p class="text-slate-500 font-semibold">Vai nell'Area Genitori ⚙️ in alto a destra per aggiungere i video di Lucilla o altri cartoni da YouTube!</p></div>`;
+                    return;
                 }
                 
-                card.innerHTML = `
-                    <div class="text-6xl mb-2 animate-breathe" style="color: ${ep.color}">${ep.icon}</div>
-                    <h3 class="font-display font-bold text-[#2B2D42] text-lg leading-tight h-10 flex items-center justify-center">${ep.title}</h3>
-                    <button class="mt-2 w-full text-white font-extrabold py-3 px-4 rounded-2xl shadow-sm transition" style="background-color: ${isDisabled ? '#ccc' : btnColor}">
-                        ${isDisabled ? disabledText : btnText}
-                    </button>
-                `;
-                grid.appendChild(card);
-            });
+                ytVideos.forEach(ep => {
+                    const card = document.createElement('div');
+                    card.className = 'relative aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-md cursor-pointer group hover:scale-[1.02] transition-transform';
+                    card.onclick = () => openEpisode(ep.id);
+                    
+                    const imgUrl = `https://img.youtube.com/vi/${ep.ytId}/hqdefault.jpg`;
+                    card.innerHTML = `
+                        <img src="${imgUrl}" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="${ep.title}">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none"></div>
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div class="bg-white/30 backdrop-blur-sm rounded-full w-14 h-14 flex items-center justify-center border border-white/50 shadow-lg">
+                                <span class="text-3xl ml-1 drop-shadow-md">▶️</span>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-3 left-3 right-3 text-white font-bold text-sm leading-snug drop-shadow-lg line-clamp-2 pointer-events-none">
+                            ${ep.title}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } else {
+                // STILE MODULI CLASSICI (Nasconde i video Social di YouTube)
+                grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5';
+                const eduVideos = episodesData.filter(e => e.type !== 'youtube');
+                
+                eduVideos.forEach(ep => {
+                    let btnColor = ep.color;
+                    let btnText = "Avvia";
+
+                    if (currentMode === 'tv') {
+                        btnColor = '#E07A5F';
+                        btnText = "📺 Avvia TV";
+                    } else if (currentMode === 'interactive') {
+                        btnColor = '#84A98C';
+                        btnText = "👆 Tocca & Parla";
+                    } else if (currentMode === 'games') {
+                        btnColor = '#F4D35E';
+                        btnText = "🎈 Gioca Ora";
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-3xl p-5 border-2 border-[#E8E2D5] shadow-sm transition-all duration-300 flex flex-col items-center text-center gap-3 cursor-pointer hover:-translate-y-1 hover:shadow-lg';
+                    card.onclick = () => openEpisode(ep.id);
+                    
+                    card.innerHTML = `
+                        <div class="text-6xl mb-2 animate-breathe" style="color: ${ep.color}">${ep.icon}</div>
+                        <h3 class="font-display font-bold text-[#2B2D42] text-lg leading-tight h-10 flex items-center justify-center">${ep.title}</h3>
+                        <button class="mt-2 w-full text-white font-extrabold py-3 px-4 rounded-2xl shadow-sm transition" style="background-color: ${btnColor}">
+                            ${btnText}
+                        </button>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
         }
 
         function openEpisode(id) {
@@ -491,15 +538,51 @@
             requestWakeLock(); // Tieni lo schermo acceso
             startSleepTimer(); // Fai partire il timer se impostato
 
-            if(activeEpisode.type === 'youtube') {
-                document.getElementById('interactiveStage').innerHTML = `
-                    <iframe class="w-full max-w-4xl aspect-video rounded-3xl pointer-events-auto z-10 shadow-2xl animate-fade-in" 
-                    src="https://www.youtube.com/embed/${activeEpisode.ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0" 
-                    title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-                    </iframe>
-                `;
+            if (currentMode === 'social') {
+                document.getElementById('interactiveStage').classList.add('hidden');
+                const feed = document.getElementById('socialFeedContainer');
+                feed.classList.remove('hidden');
+                feed.innerHTML = '';
+                
+                // Popola il feed in vero stile TikTok
+                activeEpisode.slides.forEach((video, index) => {
+                    const slide = document.createElement('div');
+                    slide.className = 'h-full w-full snap-start relative flex items-center justify-center bg-black shrink-0';
+                    // Il video cliccato prova a partire in autoplay, gli altri attendono lo scroll
+                    const autoP = index === slideIndex ? 1 : 0;
+                    slide.innerHTML = `
+                        <iframe class="w-full h-full max-w-4xl pointer-events-none" 
+                        src="https://www.youtube.com/embed/${video.ytId}?autoplay=${autoP}&controls=0&modestbranding=1&rel=0&fs=0&enablejsapi=1" 
+                        title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+                        </iframe>
+                        <!-- Scudo trasparente locale per permettere lo scroll fisico ma bloccare il touch di YouTube -->
+                        <div class="absolute inset-0 z-10"></div>
+                    `;
+                    feed.appendChild(slide);
+                    socialObserver.observe(slide); // Attiva il play automatico quando entra nello schermo
+                });
+
+                // Scorri automaticamente al video cliccato dalla bimba
+                setTimeout(() => {
+                    if (feed.children[slideIndex]) {
+                        feed.children[slideIndex].scrollIntoView({ behavior: 'instant' });
+                    }
+                }, 10);
+
             } else {
-                renderInteractiveSlide();
+                document.getElementById('interactiveStage').classList.remove('hidden');
+                document.getElementById('socialFeedContainer').classList.add('hidden');
+                
+                if(activeEpisode.type === 'youtube') {
+                    document.getElementById('interactiveStage').innerHTML = `
+                        <iframe class="w-full max-w-4xl aspect-video rounded-3xl pointer-events-auto z-10 shadow-2xl animate-fade-in" 
+                        src="https://www.youtube.com/embed/${activeEpisode.ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0" 
+                        title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+                        </iframe>
+                    `;
+                } else {
+                    renderInteractiveSlide();
+                }
             }
 
             if (document.documentElement.requestFullscreen) {
@@ -514,26 +597,7 @@
             if(!activeEpisode || activeEpisode.type === 'youtube') return;
             const stage = document.getElementById('interactiveStage');
             
-            if (activeEpisode.type === 'social') {
-                const currentVideo = activeEpisode.slides[slideIndex];
-                if(!currentVideo) return;
-                
-                document.getElementById('playerEpTitle').innerText = currentVideo.title;
-                document.getElementById('playerEpIcon').innerText = currentVideo.icon;
-
-                stage.innerHTML = `
-                    <div class="relative w-full max-w-4xl aspect-video animate-fade-in shadow-2xl rounded-3xl overflow-hidden">
-                        <iframe class="w-full h-full pointer-events-auto z-10" 
-                        src="https://www.youtube.com/embed/${currentVideo.ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0" 
-                        title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
-                        </iframe>
-                    </div>
-                    <div class="absolute bottom-20 md:bottom-8 bg-black/60 backdrop-blur-md px-6 py-3 rounded-full text-white font-bold text-sm md:text-base animate-bounce pointer-events-none z-50 flex items-center gap-2 shadow-lg">
-                        <span class="text-2xl">👆</span> Scorri in su per il prossimo!
-                    </div>
-                `;
-                return;
-            }
+            if (activeEpisode.type === 'social') return; // Gestito nativamente nel feed
 
             if (currentMode === 'games') {
                 let options = [...activeEpisode.slides];
@@ -602,6 +666,11 @@
             document.getElementById('playerOverlay').classList.remove('flex');
             activeEpisode = null;
             document.getElementById('interactiveStage').innerHTML = ''; // Ferma il video youtube
+            
+            // Ferma e svuota il feed social
+            socialObserver.disconnect();
+            document.getElementById('socialFeedContainer').innerHTML = '';
+
             window.speechSynthesis.cancel();
             
             releaseWakeLock(); // Rilascia lo schermo
@@ -770,12 +839,14 @@
         const lockCircle = document.getElementById('lockProgressCircle');
         const touchShield = document.getElementById('touchShield');
         const unlockedBar = document.getElementById('unlockedControlsBar');
+        const secretExitBtn = document.getElementById('secretExitBtn');
         let lockTimer = null;
         
         function relockScreen() {
             isLocked = true;
             touchShield.style.display = 'block';
             unlockedBar.classList.add('hidden');
+            secretExitBtn.classList.add('hidden'); // Nascondi il tasto Esci in alto
             lockCircle.style.strokeDashoffset = "157";
             document.getElementById('lockIconEmoji').innerText = "🔒";
         }
@@ -783,7 +854,8 @@
         function unlockScreen() {
             isLocked = false;
             touchShield.style.display = 'none'; // Togli lo scudo
-            unlockedBar.classList.remove('hidden'); // Mostra controlli
+            unlockedBar.classList.remove('hidden'); // Mostra controlli in basso
+            secretExitBtn.classList.remove('hidden'); // Mostra il tasto Esci in alto
             document.getElementById('lockIconEmoji').innerText = "🔓";
         }
 
@@ -808,29 +880,6 @@
         lockBtn.addEventListener('touchstart', startUnlock);
         window.addEventListener('mouseup', cancelUnlock);
         window.addEventListener('touchend', cancelUnlock);
-
-        /* SWIPE PER MODALITA' SOCIAL (TikTok Style) */
-        let touchStartY = 0;
-        let touchEndY = 0;
-
-        touchShield.addEventListener('touchstart', e => {
-            touchStartY = e.changedTouches[0].screenY;
-        }, {passive: true});
-
-        touchShield.addEventListener('touchend', e => {
-            touchEndY = e.changedTouches[0].screenY;
-            handleSocialSwipe();
-        }, {passive: true});
-
-        function handleSocialSwipe() {
-            if (!activeEpisode || activeEpisode.type !== 'social') return;
-            const threshold = 60; // Distanza minima per attivare lo swipe
-            if (touchStartY - touchEndY > threshold) {
-                nextSlide(); // Swipe Up -> Video successivo
-            } else if (touchEndY - touchStartY > threshold) {
-                prevSlide(); // Swipe Down -> Video precedente
-            }
-        }
 
         /* EFFETTI (Coriandoli) */
         function createConfetti() {
