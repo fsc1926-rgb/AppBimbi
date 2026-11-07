@@ -55,7 +55,7 @@
             overscroll-behavior: none;
         }
         /* Consente sempre lo scorrimento touch verticale nei menu e nella home */
-        main, #episodesGrid, #parentSettingsModal, #socialFeedContainer, #s25GuideModal {
+        main, #episodesGrid, #parentSettingsModal, #socialFeedContainer, #s25GuideModal, #stickerAlbumModal, #pianoModal {
             touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -150,14 +150,20 @@
                         <h1 class="font-display text-base sm:text-xl font-bold text-[#2B2D42] tracking-tight leading-tight">
                             BimbiParla <span class="text-[#E07A5F]">TV</span>
                         </h1>
-                        <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300">PLUS</span>
+                        <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300">EVOLUTIVA 1-4 ANNI</span>
                     </div>
-                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">Scudo Anti-Tocco S25, Specchio Logopedico & Foto di Casa</p>
+                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">Cresce con la tua bimba: Parole, Frasi, Memory, Inglese & Premi</p>
                 </div>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <button id="installAppBtn" onclick="installApp()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition">
                     <span>📱</span> <span>Installa</span>
+                </button>
+                <button onclick="openStickerAlbum()" class="bg-pink-500 hover:bg-pink-600 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition" title="Album degli Adesivi Parlanti">
+                    <span>🌟</span> <span>Figurine (<span id="headerStickerCount">0</span>)</span>
+                </button>
+                <button onclick="openPianoModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition" title="Mini-Pianoforte degli Animali">
+                    <span>🎹</span> <span class="hidden xs:inline sm:inline">Piano</span>
                 </button>
                 <button onclick="document.getElementById('s25GuideModal').classList.remove('hidden')" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition" title="Come bloccare il tasto Home su Samsung S25 e iPhone">
                     <span>🛡️</span> <span>Blocco S25</span>
@@ -174,13 +180,39 @@
 
     <!-- MAIN -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-3 py-3 sm:px-6 sm:py-5 pb-12">
+        <!-- BARRA EVOLUTIVA ETÀ (1-2 ANNI / 2-3 ANNI / 3-4 ANNI) + BILINGUE INGLESE -->
+        <section class="mb-3 sm:mb-4 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3.5 border-2 border-amber-200/80 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span class="text-xs font-extrabold text-[#2B2D42] mr-1">🌱 Età & Livello:</span>
+                    <button onclick="setChildAgeLevel(1)" id="ageBtn_1" class="px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition flex items-center gap-1 bg-[#E07A5F] text-white shadow-sm">
+                        <span>🐣</span> <span>1-2 Anni (Parole)</span>
+                    </button>
+                    <button onclick="setChildAgeLevel(2)" id="ageBtn_2" class="px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition flex items-center gap-1 bg-white text-[#2B2D42] border border-amber-200">
+                        <span>🦊</span> <span>2-3 Anni (Prime Frasi)</span>
+                    </button>
+                    <button onclick="setChildAgeLevel(3)" id="ageBtn_3" class="px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition flex items-center gap-1 bg-white text-[#2B2D42] border border-amber-200">
+                        <span>🦉</span> <span>3-4 Anni (Memory & Logica)</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="toggleBilingualMode()" id="bilingualToggleBtn" class="text-[11px] sm:text-xs font-extrabold px-2.5 py-1.5 rounded-xl border border-sky-300 bg-white text-sky-900 flex items-center gap-1 shadow-sm transition">
+                        <span>🇮🇹</span> <span id="bilingualToggleLabel">Solo Italiano</span>
+                    </button>
+                    <button onclick="toggleBlueLightFilter()" id="quickNightBtn" class="text-[11px] sm:text-xs font-extrabold px-2.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 flex items-center gap-1 transition">
+                        <span>🌙</span> <span id="quickNightLabel">Notte: OFF</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- MODALITÀ (Griglia 2x2 compatta su smartphone, 4 colonne su desktop) -->
         <section class="mb-4 sm:mb-6 bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 border-2 border-[#E8E2D5] shadow-sm">
             <div class="flex items-center justify-between mb-2 sm:mb-3 px-1">
                 <h2 class="font-display text-sm sm:text-lg font-bold text-[#2B2D42]">Scegli la modalità:</h2>
-                <button onclick="toggleBlueLightFilter()" id="quickNightBtn" class="text-[11px] sm:text-xs font-extrabold px-2.5 py-1 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 flex items-center gap-1 transition">
-                    <span>🌙</span> <span id="quickNightLabel">Luce Notte: OFF</span>
-                </button>
+                <div class="text-[11px] sm:text-xs font-extrabold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <span>🏆</span> <span>Vittorie Giochi: <strong id="mainGamesWonBadge">0</strong></span>
+                </div>
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
                 <button onclick="setAppMode('tv')" id="btn_tv" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#E07A5F] text-white border-[#E07A5F]">
@@ -189,11 +221,11 @@
                 </button>
                 <button onclick="setAppMode('interactive')" id="btn_interactive" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
                     <span class="text-lg sm:text-2xl bg-[#84A98C]/20 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">👆</span>
-                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Tocca & Parla</div><div class="text-[10px] sm:text-[11px] text-slate-500 truncate">Esplora + Specchio</div></div>
+                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Tocca & Parla</div><div id="modeSub_interactive" class="text-[10px] sm:text-[11px] text-slate-500 truncate">Parole & Sillabe</div></div>
                 </button>
                 <button onclick="setAppMode('games')" id="btn_games" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
                     <span class="text-lg sm:text-2xl bg-[#F4D35E]/30 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">🎈</span>
-                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Sala Giochi</div><div class="text-[10px] sm:text-[11px] text-slate-500 truncate">Trova Colori/Parole</div></div>
+                    <div class="min-w-0"><div class="font-extrabold text-xs sm:text-sm truncate">Sala Giochi</div><div id="modeSub_games" class="text-[10px] sm:text-[11px] text-slate-500 truncate">Trova & Indovina</div></div>
                 </button>
                 <button onclick="setAppMode('social')" id="btn_social" class="text-left p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-2 sm:gap-3 bg-[#FFFDF7] text-[#2B2D42] border-[#E8E2D5]">
                     <span class="text-lg sm:text-2xl bg-[#A8DADC]/40 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shrink-0">📱</span>
@@ -205,6 +237,81 @@
         <!-- EPISODI -->
         <div id="episodesGrid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5"></div>
     </main>
+
+    <!-- MODALE ALBUM DELLE FIGURINE PARLANTI (COLLEZIONE ADESIVI SBLOCCABILI) -->
+    <div id="stickerAlbumModal" class="fixed inset-0 z-50 bg-[#2B2D42]/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-[#FFFDF7] rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto border-4 border-pink-300">
+            <button onclick="document.getElementById('stickerAlbumModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F]">✖</button>
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-3xl sm:text-4xl">🌟</span>
+                <div>
+                    <h2 class="font-display text-xl sm:text-2xl font-bold text-[#2B2D42]">Il Mio Album delle Figurine</h2>
+                    <p class="text-xs text-slate-600 font-semibold">Ogni 5 giochi indovinati nella Sala Giochi ricevi un Pacco Regalo 🎁 con una nuova figurina parlante!</p>
+                </div>
+            </div>
+            <div id="stickerProgressBanner" class="bg-pink-50 border-2 border-pink-200 rounded-2xl p-3 mb-4 flex items-center justify-between">
+                <span class="text-xs font-extrabold text-pink-900" id="stickerNextGoalText">Prossimo regalo tra 5 vittorie!</span>
+                <span class="bg-pink-500 text-white text-xs font-black px-3 py-1 rounded-full" id="stickerCountBadge">0 / 12</span>
+            </div>
+            <div id="stickerGridContainer" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 sm:gap-3.5"></div>
+        </div>
+    </div>
+
+    <!-- MODALE MINI-PIANOFORTE MUSICALE DEGLI ANIMALI -->
+    <div id="pianoModal" class="fixed inset-0 z-50 bg-[#2B2D42]/85 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-[#FFFDF7] rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl relative border-4 border-purple-300 text-center">
+            <button onclick="document.getElementById('pianoModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F]">✖</button>
+            <div class="text-3xl sm:text-4xl mb-1">🎹</div>
+            <h2 class="font-display text-xl sm:text-2xl font-bold text-[#2B2D42] mb-1">Mini-Pianoforte Magico</h2>
+            <p class="text-xs text-slate-500 font-semibold mb-4">Tocca i tasti colorati per suonare le note e ascoltare gli animali!</p>
+            <div class="flex justify-center gap-2 mb-4">
+                <button onclick="setPianoInstrument('notes')" id="pianoInst_notes" class="bg-purple-600 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs">🎵 Carillon Do-Re-Mi</button>
+                <button onclick="setPianoInstrument('animals')" id="pianoInst_animals" class="bg-white text-purple-800 border border-purple-200 font-extrabold px-3 py-1.5 rounded-xl text-xs">🐮 Coro Animali</button>
+            </div>
+            <div class="grid grid-cols-5 gap-2 sm:gap-3 h-44 sm:h-56 mb-2">
+                <button onclick="playPianoKey(0)" class="rounded-2xl bg-[#E07A5F] hover:opacity-95 active:scale-95 text-white shadow-lg border-b-8 border-red-800/40 flex flex-col items-center justify-end pb-4 transition">
+                    <span class="text-2xl sm:text-4xl mb-2">🐮</span>
+                    <span class="font-black text-xs sm:text-base">DO</span>
+                </button>
+                <button onclick="playPianoKey(1)" class="rounded-2xl bg-[#F4A261] hover:opacity-95 active:scale-95 text-white shadow-lg border-b-8 border-orange-800/40 flex flex-col items-center justify-end pb-4 transition">
+                    <span class="text-2xl sm:text-4xl mb-2">🐷</span>
+                    <span class="font-black text-xs sm:text-base">RE</span>
+                </button>
+                <button onclick="playPianoKey(2)" class="rounded-2xl bg-[#F4D35E] hover:opacity-95 active:scale-95 text-[#2B2D42] shadow-lg border-b-8 border-amber-600/40 flex flex-col items-center justify-end pb-4 transition">
+                    <span class="text-2xl sm:text-4xl mb-2">🐱</span>
+                    <span class="font-black text-xs sm:text-base">MI</span>
+                </button>
+                <button onclick="playPianoKey(3)" class="rounded-2xl bg-[#84A98C] hover:opacity-95 active:scale-95 text-white shadow-lg border-b-8 border-emerald-900/40 flex flex-col items-center justify-end pb-4 transition">
+                    <span class="text-2xl sm:text-4xl mb-2">🐶</span>
+                    <span class="font-black text-xs sm:text-base">FA</span>
+                </button>
+                <button onclick="playPianoKey(4)" class="rounded-2xl bg-[#A8DADC] hover:opacity-95 active:scale-95 text-[#2B2D42] shadow-lg border-b-8 border-cyan-800/40 flex flex-col items-center justify-end pb-4 transition">
+                    <span class="text-2xl sm:text-4xl mb-2">🐤</span>
+                    <span class="font-black text-xs sm:text-base">SOL</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY PACCO REGALO MAGICO (Compare ogni 5 vittorie nella Sala Giochi) -->
+    <div id="giftBoxModal" class="fixed inset-0 z-[70] bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border-4 border-[#F4D35E] animate-fade-in">
+            <div class="text-xs font-extrabold uppercase tracking-widest text-pink-600 mb-1">🎉 Traguardo Raggiunto!</div>
+            <h3 id="giftBoxTitle" class="font-display text-2xl font-black text-[#2B2D42] mb-2">Un Pacco Regalo per Te!</h3>
+            <p id="giftBoxSubtitle" class="text-xs text-slate-600 font-semibold mb-4">Tocca il pacco regalo per scartarlo!</p>
+            <div id="giftBoxInteractive" onclick="openGiftBoxReward()" class="text-7xl sm:text-8xl my-4 cursor-pointer animate-breathe select-none">
+                🎁
+            </div>
+            <div id="giftBoxRevealedContent" class="hidden my-3">
+                <div id="giftStickerEmoji" class="text-7xl sm:text-8xl mb-2">🦄</div>
+                <div id="giftStickerName" class="font-display text-2xl font-black text-pink-600">Unicorno Magico</div>
+                <p class="text-xs text-slate-500 mt-1">Aggiunto al tuo Album delle Figurine!</p>
+            </div>
+            <button id="giftBoxCloseBtn" onclick="closeGiftBoxModal()" class="hidden w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-2xl text-sm shadow-md">
+                🌟 Evviva! Continua a Giocare
+            </button>
+        </div>
+    </div>
 
     <!-- PLAYER FULLSCREEN CON GUARDIA S25 -->
     <div id="playerOverlay" class="fixed inset-0 z-50 bg-[#1D202F] hidden flex-col justify-between overflow-hidden player-locked-container">
@@ -405,14 +512,12 @@
                     <span id="recordBtnIcon">⏺️</span> <span id="recordBtnText">Aggiungi Registrazione Vocale</span>
                 </button>
                 <div id="audioFeedback" class="text-xs font-bold text-center mt-2 hidden text-emerald-700">Voce aggiunta alla lista!</div>
-                
-                <!-- LISTA VOCI REGISTRATE -->
-                <div id="recordedVoicesList" class="mt-3 space-y-2 max-h-36 overflow-y-auto border-t border-emerald-200/70 pt-2.5"></div>
+                <div id="recordedVoicesList" class="mt-3 space-y-2 max-h-36 overflow-y-auto border-t border-emerald-200 pt-2.5"></div>
             </div>
 
-            <!-- 5. SEZIONE TIMER NANNA + SPECCHIO LOGOPEDICO + LUCE BLU -->
+            <!-- 5. SEZIONE TIMER NANNA + SPECCHIO LOGOPEDICO + LUCE BLU + SBLOCCO EPISODI -->
             <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-200 mb-5 space-y-3">
-                <h3 class="font-bold text-indigo-800 flex items-center gap-2 text-sm sm:text-base"><span>🌙</span> Timer Nanna, Specchio & Protezione Occhi</h3>
+                <h3 class="font-bold text-indigo-800 flex items-center gap-2 text-sm sm:text-base"><span>🌙</span> Timer Nanna, Specchio & Sblocchi</h3>
                 <p class="text-xs text-slate-600">Negli ultimi 2 minuti del Timer Nanna si attiva in automatico il filtro caldo anti-luce blu per rilassare la bimba.</p>
                 <div class="flex gap-2">
                     <button id="timerBtn0" onclick="setTimer(0)" class="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs transition ring-2 ring-indigo-400">Spento</button>
@@ -422,6 +527,10 @@
                 <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-indigo-100 text-xs">
                     <span class="font-bold text-slate-700">🪞 Specchio Logopedico in "Tocca & Parla"</span>
                     <button id="mirrorSettingBtn" onclick="toggleMagicMirror()" class="bg-slate-200 text-slate-700 font-extrabold px-3 py-1 rounded-lg transition">OFF</button>
+                </div>
+                <div class="flex items-center justify-between bg-white p-2.5 rounded-xl border border-indigo-100 text-xs">
+                    <span class="font-bold text-slate-700">🔓 Sblocca subito tutti gli Episodi & Figurine</span>
+                    <button onclick="unlockAllContentParent()" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-3 py-1 rounded-lg transition">Sblocca Tutto</button>
                 </div>
             </div>
 
@@ -459,7 +568,7 @@
     </div>
 
     <script>
-        /* STATO DELL'APP */
+        /* STATO DELL'APP E CRESCITA EVOLUTIVA (1-4 ANNI) */
         let currentMode = 'tv';
         let isLocked = true;
         let activeEpisode = null;
@@ -468,6 +577,34 @@
         let blueLightActive = false;
         let magicMirrorEnabled = false;
         let mirrorStream = null;
+        let childAgeLevel = parseInt(localStorage.getItem('bimbiparla_age_level') || '1', 10) || 1;
+        let bilingualMode = localStorage.getItem('bimbiparla_bilingual') === 'true';
+        let parentUnlockedAll = localStorage.getItem('bimbiparla_unlocked_all') === 'true';
+        let pianoInstrument = 'notes';
+
+        /* COLLEZIONE FIGURINE PARLANTI (STICKER ALBUM) */
+        const allStickersCatalog = [
+            { id: 'st_unicorn', emoji: '🦄', name: 'Unicorno Magico', sound: 'Nitrito magico! Weee!' },
+            { id: 'st_dino', emoji: '🦖', name: 'Amico T-Rex', sound: 'Roarrr! Sono il dinosauro!' },
+            { id: 'st_rocket', emoji: '🚀', name: 'Razzo Spaziale', sound: 'Tre, due, uno... Partenza!' },
+            { id: 'st_rainbow', emoji: '🌈', name: 'Arcobaleno', sound: 'Quanti colori meravigliosi!' },
+            { id: 'st_butterfly', emoji: '🦋', name: 'Farfallina', sound: 'Vola vola leggera!' },
+            { id: 'st_crown', emoji: '👑', name: 'Principessa', sound: 'Sei super bravissima!' },
+            { id: 'st_dolphin', emoji: '🐬', name: 'Delfino Blu', sound: 'Splash! Salto tra le onde!' },
+            { id: 'st_guitar', emoji: '🎸', name: 'Chitarra Rock', sound: 'Plin plon! Viva la musica!' },
+            { id: 'st_lion', emoji: '🦁', name: 'Re Leone', sound: 'Roar! Che grande coraggio!' },
+            { id: 'st_icecream', emoji: '🍦', name: 'Gelato Dolce', sound: 'Gnam gnam, che bontà!' },
+            { id: 'st_star', emoji: '🌟', name: 'Super Stella', sound: 'Brilli come una stellina!' },
+            { id: 'st_teddy', emoji: '🧸', name: 'Orsetto Coccole', sound: 'Un abbraccio morbido morbido!' }
+        ];
+
+        let unlockedStickers = [];
+        try {
+            const savedSt = JSON.parse(localStorage.getItem('bimbiparla_stickers') || '[]');
+            if (Array.isArray(savedSt)) unlockedStickers = savedSt;
+        } catch (e) {
+            unlockedStickers = [];
+        }
 
         /* SINTETIZZATORE AUDIO MUSICALE DOLCE (Marimba / Carillon Web Audio API - Zero file esterni) */
         let audioCtx = null;
@@ -564,8 +701,20 @@
             if (won) {
                 childStats.gamesWon = (childStats.gamesWon || 0) + 1;
                 if (word) childStats.wordCounts[word] = (childStats.wordCounts[word] || 0) + 1;
+                // Ogni 5 vittorie regala una nuova figurina parlante!
+                if (childStats.gamesWon > 0 && childStats.gamesWon % 5 === 0) {
+                    setTimeout(() => triggerGiftBoxModal(), 900);
+                }
             }
             saveChildStats();
+            updateHeaderProgressBadges();
+        }
+
+        function updateHeaderProgressBadges() {
+            const stCount = document.getElementById('headerStickerCount');
+            if (stCount) stCount.innerText = unlockedStickers.length;
+            const gwBadge = document.getElementById('mainGamesWonBadge');
+            if (gwBadge) gwBadge.innerText = childStats.gamesWon || 0;
         }
 
         function renderChildStatsUI() {
@@ -573,84 +722,255 @@
             const gEl = document.getElementById('statGamesWon');
             const aEl = document.getElementById('statAccuracy');
             const topEl = document.getElementById('topWordsContainer');
-            if (!wEl) return;
-
-            wEl.innerText = childStats.wordsHeard || 0;
-            gEl.innerText = childStats.gamesWon || 0;
-            const acc = childStats.gamesAttempted > 0
-                ? Math.round((childStats.gamesWon / childStats.gamesAttempted) * 100)
-                : 100;
-            aEl.innerText = acc + '%';
-
-            const entries = Object.entries(childStats.wordCounts || {}).sort((a, b) => b[1] - a[1]).slice(0, 4);
-            if (entries.length === 0) {
-                topEl.innerHTML = 'Parole più ascoltate: <em>Inizia a esplorare i cartoni!</em>';
-            } else {
-                topEl.innerHTML = '🌟 Parole preferite: ' + entries.map(([w, c]) => `<span class="inline-block bg-sky-100 text-sky-900 px-2 py-0.5 rounded-full text-[11px] font-extrabold mr-1">${w} (${c})</span>`).join('');
+            if (wEl) wEl.innerText = childStats.wordsHeard || 0;
+            if (gEl) gEl.innerText = childStats.gamesWon || 0;
+            const att = childStats.gamesAttempted || 0;
+            const acc = att > 0 ? Math.round(((childStats.gamesWon || 0) / att) * 100) : 100;
+            if (aEl) aEl.innerText = acc + '%';
+            if (topEl) {
+                const entries = Object.entries(childStats.wordCounts || {}).sort((a, b) => b[1] - a[1]).slice(0, 4);
+                if (entries.length === 0) {
+                    topEl.innerHTML = 'Parole preferite: <em>Inizia a giocare per vedere i dati!</em>';
+                } else {
+                    topEl.innerHTML = 'Parole preferite: ' + entries.map(([w, c]) => `<span class="inline-block bg-sky-100 text-sky-900 font-extrabold px-2 py-0.5 rounded-lg mr-1">${w} (${c})</span>`).join('');
+                }
             }
         }
 
         function resetChildStats() {
             childStats = { wordsHeard: 0, gamesWon: 0, gamesAttempted: 0, wordCounts: {} };
             saveChildStats();
+            updateHeaderProgressBadges();
             renderChildStatsUI();
+            renderEpisodes();
         }
 
-        /* DATABASE EPISODI BASE + NUOVI EPISODI LOGOPEDICI */
+        /* BOLLE SENSORIALI MUSICALI SULLO SCUDO ANTI-TOCCO */
+        const bubbleEmojis = ['🫧', '✨', '🌟', '🎵', '🦋', '🌸'];
+        const bubbleColors = ['rgba(168,218,220,0.65)', 'rgba(244,211,94,0.65)', 'rgba(224,122,95,0.55)', 'rgba(132,169,140,0.65)'];
+
+        function spawnSensoryBubble(x, y) {
+            playGentleChime('bubble');
+            const bubble = document.createElement('div');
+            bubble.className = 'sensory-bubble';
+            const size = Math.floor(Math.random() * 28) + 48;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = x + 'px';
+            bubble.style.top = y + 'px';
+            bubble.style.backgroundColor = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
+            bubble.innerText = bubbleEmojis[Math.floor(Math.random() * bubbleEmojis.length)];
+            document.body.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 1150);
+        }
+
+        /* GUARDIA FULLSCREEN IMMERSIVA S25, ROTAZIONE 180°, FILTRO LUCE BLU, SPECCHIO E WAKE LOCK */
+        let wakeLockSentinel = null;
+        let sleepTimer = null;
+        let blueLightPreTimer = null;
+        let sleepDurationMs = 0;
+        let tvAutoInterval = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let rewardAudiosList = [];
+
+        try {
+            const savedVoices = JSON.parse(localStorage.getItem('bimbiparla_reward_audios_list') || '[]');
+            if (Array.isArray(savedVoices)) rewardAudiosList = savedVoices;
+        } catch (e) {
+            rewardAudiosList = [];
+        }
+
+        function enterImmersiveFullscreen() {
+            const el = document.documentElement;
+            if (!document.fullscreenElement && el.requestFullscreen) {
+                el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+            }
+        }
+
+        function exitImmersiveFullscreen() {
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLockSentinel = await navigator.wakeLock.request('screen');
+                }
+            } catch (e) {}
+        }
+
+        function releaseWakeLock() {
+            if (wakeLockSentinel) {
+                wakeLockSentinel.release().catch(() => {});
+                wakeLockSentinel = null;
+            }
+        }
+
+        function toggleFlip180() {
+            isFlipped180 = !isFlipped180;
+            const wrapper = document.getElementById('playerViewportWrapper');
+            if (wrapper) wrapper.classList.toggle('flipped-180', isFlipped180);
+        }
+
+        function toggleBlueLightFilter(forceState) {
+            blueLightActive = typeof forceState === 'boolean' ? forceState : !blueLightActive;
+            const overlay = document.getElementById('blueLightOverlay');
+            const lbl = document.getElementById('quickNightLabel');
+            if (overlay) overlay.classList.toggle('hidden', !blueLightActive);
+            if (lbl) lbl.innerText = blueLightActive ? 'Notte: ON' : 'Notte: OFF';
+        }
+
+        async function startMagicMirrorCamera() {
+            const widget = document.getElementById('magicMirrorWidget');
+            const video = document.getElementById('magicMirrorVideo');
+            if (!widget || !video) return;
+            try {
+                if (!mirrorStream) {
+                    mirrorStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                }
+                video.srcObject = mirrorStream;
+                widget.classList.remove('hidden');
+            } catch (e) {
+                widget.classList.add('hidden');
+            }
+        }
+
+        function stopMagicMirrorCamera() {
+            const widget = document.getElementById('magicMirrorWidget');
+            if (widget) widget.classList.add('hidden');
+            if (mirrorStream) {
+                mirrorStream.getTracks().forEach(t => t.stop());
+                mirrorStream = null;
+            }
+        }
+
+        function toggleMagicMirror() {
+            magicMirrorEnabled = !magicMirrorEnabled;
+            const settingBtn = document.getElementById('mirrorSettingBtn');
+            if (settingBtn) {
+                settingBtn.innerText = magicMirrorEnabled ? 'ON' : 'OFF';
+                settingBtn.className = magicMirrorEnabled
+                    ? 'bg-emerald-600 text-white font-extrabold px-3 py-1 rounded-lg transition'
+                    : 'bg-slate-200 text-slate-700 font-extrabold px-3 py-1 rounded-lg transition';
+            }
+            if (!document.getElementById('playerOverlay').classList.contains('hidden') && activeEpisode && activeEpisode.type === 'interactive') {
+                if (magicMirrorEnabled) startMagicMirrorCamera();
+                else stopMagicMirrorCamera();
+            } else {
+                stopMagicMirrorCamera();
+            }
+        }
+
+        const socialObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const iframe = entry.target.querySelector('iframe');
+                if (!iframe || !iframe.contentWindow) return;
+                if (entry.isIntersecting) {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                } else {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+            });
+        }, { threshold: 0.65 });
+
+        /* DATABASE EPISODI BASE + EPISODI EVOLUTIVI E SBLOCCABILI (1-4 ANNI) */
         const episodesData = [
             {
-                id: 'fattoria', icon: '🐮', title: 'La Fattoria dei Versi', color: '#84A98C', type: 'interactive',
+                id: 'fattoria', icon: '🐮', title: 'La Fattoria dei Versi', color: '#84A98C', type: 'interactive', unlockWins: 0,
                 slides: [
-                    { emoji: '🐮', word: 'Mucca', syllables: 'MUU - CCA', sound: 'Muuu' },
-                    { emoji: '🐷', word: 'Maiale', syllables: 'MA - IA - LE', sound: 'Oink Oink' },
-                    { emoji: '🐔', word: 'Gallina', syllables: 'GAL - LI - NA', sound: 'Coccodè' },
-                    { emoji: '🐑', word: 'Pecora', syllables: 'PE - CO - RA', sound: 'Beee' },
-                    { emoji: '🐶', word: 'Cane', syllables: 'CA - NE', sound: 'Bau Bau' },
-                    { emoji: '🐱', word: 'Gatto', syllables: 'GAT - TO', sound: 'Miao Miao' }
+                    { emoji: '🐮', word: 'Mucca', en: 'Cow', syllables: 'MUU - CCA', sound: 'Muuu', phrase: 'La mucca mangia l\'erba', question: 'Chi fa Muuu e ci dà il latte?' },
+                    { emoji: '🐷', word: 'Maiale', en: 'Pig', syllables: 'MA - IA - LE', sound: 'Oink Oink', phrase: 'Il maiale salta nel fango', question: 'Chi è tutto rosa e fa Oink Oink?' },
+                    { emoji: '🐔', word: 'Gallina', en: 'Hen', syllables: 'GAL - LI - NA', sound: 'Coccodè', phrase: 'La gallina fa l\'uovo', question: 'Chi fa Coccodè nel pollaio?' },
+                    { emoji: '🐑', word: 'Pecora', en: 'Sheep', syllables: 'PE - CO - RA', sound: 'Beee', phrase: 'La pecora ha la lana morbida', question: 'Chi è morbida e fa Beee?' },
+                    { emoji: '🐶', word: 'Cane', en: 'Dog', syllables: 'CA - NE', sound: 'Bau Bau', phrase: 'Il cane scodinzola felice', question: 'Chi abbaia e fa Bau Bau?' },
+                    { emoji: '🐱', word: 'Gatto', en: 'Cat', syllables: 'GAT - TO', sound: 'Miao Miao', phrase: 'Il gatto fa le fusa', question: 'Chi fa Miao Miao e ama dormire?' }
                 ]
             },
             {
-                id: 'colori', icon: '🎈', title: 'I Colori Base', color: '#F4D35E', type: 'interactive',
+                id: 'colori', icon: '🎈', title: 'I Colori Base', color: '#F4D35E', type: 'interactive', unlockWins: 0,
                 slides: [
-                    { emoji: '🔴', word: 'Rosso', syllables: 'ROS - SO', sound: 'Rosso!' },
-                    { emoji: '🔵', word: 'Blu', syllables: 'B - LU', sound: 'Blu!' },
-                    { emoji: '🟡', word: 'Giallo', syllables: 'GIAL - LO', sound: 'Giallo!' },
-                    { emoji: '🟢', word: 'Verde', syllables: 'VER - DE', sound: 'Verde!' }
+                    { emoji: '🔴', word: 'Rosso', en: 'Red', syllables: 'ROS - SO', sound: 'Rosso!', phrase: 'Rosso come una fragola', question: 'Qual è il colore delle fragole e dei cuori?' },
+                    { emoji: '🔵', word: 'Blu', en: 'Blue', syllables: 'B - LU', sound: 'Blu!', phrase: 'Blu come il mare grande', question: 'Qual è il colore del mare e del cielo?' },
+                    { emoji: '🟡', word: 'Giallo', en: 'Yellow', syllables: 'GIAL - LO', sound: 'Giallo!', phrase: 'Giallo come il sole caldo', question: 'Qual è il colore del sole che brilla?' },
+                    { emoji: '🟢', word: 'Verde', en: 'Green', syllables: 'VER - DE', sound: 'Verde!', phrase: 'Verde come l\'erba del prato', question: 'Qual è il colore delle foglie e del prato?' }
                 ]
             },
             {
-                id: 'prime_parole', icon: '🍼', title: 'Prime Parole di Casa', color: '#E07A5F', type: 'interactive',
+                id: 'prime_parole', icon: '🍼', title: 'Prime Parole di Casa', color: '#E07A5F', type: 'interactive', unlockWins: 0,
                 slides: [
-                    { emoji: '👩', word: 'Mamma', syllables: 'MA - MMA', sound: 'Ciao Mamma!' },
-                    { emoji: '👨', word: 'Papà', syllables: 'PA - PÀ', sound: 'Ciao Papà!' },
-                    { emoji: '💧', word: 'Acqua', syllables: 'AC - QUA', sound: 'Glu Glu Acqua!' },
-                    { emoji: '🍝', word: 'Pappa', syllables: 'PA - PPA', sound: 'Buona la pappa!' },
-                    { emoji: '🧸', word: 'Nanna', syllables: 'NAN - NA', sound: 'Sshh... Nanna' }
+                    { emoji: '👩', word: 'Mamma', en: 'Mommy', syllables: 'MA - MMA', sound: 'Ciao Mamma!', phrase: 'La Mamma ti dà un grande abbraccio', question: 'Chi è la tua Mamma dolce?' },
+                    { emoji: '👨', word: 'Papà', en: 'Daddy', syllables: 'PA - PÀ', sound: 'Ciao Papà!', phrase: 'Il Papà gioca insieme a te', question: 'Dov\'è il tuo super Papà?' },
+                    { emoji: '💧', word: 'Acqua', en: 'Water', syllables: 'AC - QUA', sound: 'Glu Glu Acqua!', phrase: 'Bevo l\'acqua fresca nel bicchiere', question: 'Cosa beviamo quando abbiamo sete?' },
+                    { emoji: '🍝', word: 'Pappa', en: 'Food', syllables: 'PA - PPA', sound: 'Buona la pappa!', phrase: 'Mangio tutta la pappa buona', question: 'Cosa mangiamo col cucchiaio quando abbiamo fame?' },
+                    { emoji: '🧸', word: 'Nanna', en: 'Sleep', syllables: 'NAN - NA', sound: 'Sshh... Nanna', phrase: 'Chiudo gli occhietti e faccio la nanna', question: 'Cosa facciamo nel lettino con l\'orsetto?' }
                 ]
             },
             {
-                id: 'emozioni_gesti', icon: '🥰', title: 'Gesti ed Emozioni', color: '#F4A261', type: 'interactive',
+                id: 'emozioni_gesti', icon: '🥰', title: 'Gesti ed Emozioni', color: '#F4A261', type: 'interactive', unlockWins: 0,
                 slides: [
-                    { emoji: '👋', word: 'Ciao', syllables: 'CIA - O', sound: 'Ciao Ciao!' },
-                    { emoji: '👏', word: 'Brava', syllables: 'BRA - VA', sound: 'Batti le manine!' },
-                    { emoji: '😘', word: 'Bacio', syllables: 'BA - CIO', sound: 'Muah! Un bacino!' },
-                    { emoji: '😄', word: 'Felice', syllables: 'FE - LI - CE', sound: 'Che bel sorriso!' }
+                    { emoji: '👋', word: 'Ciao', en: 'Hello', syllables: 'CIA - O', sound: 'Ciao Ciao!', phrase: 'Saluto tutti con la manina: Ciao!', question: 'Come salutiamo con la manina?' },
+                    { emoji: '👏', word: 'Brava', en: 'Good job', syllables: 'BRA - VA', sound: 'Batti le manine!', phrase: 'Batto le manine: sono bravissima!', question: 'Chi batte le manine per fare festa?' },
+                    { emoji: '😘', word: 'Bacio', en: 'Kiss', syllables: 'BA - CIO', sound: 'Muah! Un bacino!', phrase: 'Mando un bacino dolce: Muah!', question: 'Chi manda un bel bacino?' },
+                    { emoji: '😄', word: 'Felice', en: 'Happy', syllables: 'FE - LI - CE', sound: 'Che bel sorriso!', phrase: 'Rido e sono tanto felice!', question: 'Chi fa un grandissimo sorriso felice?' }
                 ]
             },
             {
-                id: 'numeri', icon: '🔢', title: 'I Primi Numeri', color: '#A8DADC', type: 'interactive',
+                id: 'routine_giorno', icon: '🪥', title: 'Le Routine Quotidiane', color: '#38BDF8', type: 'interactive', unlockWins: 0,
                 slides: [
-                    { emoji: '1️⃣', word: 'Uno', syllables: 'U - NO', sound: 'Uno!' },
-                    { emoji: '2️⃣', word: 'Due', syllables: 'DU - E', sound: 'Due!' },
-                    { emoji: '3️⃣', word: 'Tre', syllables: 'T - RE', sound: 'Tre!' }
+                    { emoji: '🪥', word: 'Dentini', en: 'Brush teeth', syllables: 'DEN - TI - NI', sound: 'Zac zac! Denti puliti!', phrase: 'Lavo i dentini con lo spazzolino', question: 'Cosa usiamo per lavare i dentini?' },
+                    { emoji: '🛁', word: 'Bagnetto', en: 'Bath time', syllables: 'BA - GNET - TO', sound: 'Splash! Tante bolle!', phrase: 'Faccio il bagnetto caldo con le bolle', question: 'Dove facciamo splash con l\'acqua e il sapone?' },
+                    { emoji: '👟', word: 'Scarpe', en: 'Shoes', syllables: 'SCAR - PE', sound: 'Metto le scarpine!', phrase: 'Metto le scarpe per andare a passeggio', question: 'Cosa mettiamo ai piedini prima di uscire?' },
+                    { emoji: '📖', word: 'Favola', en: 'Storybook', syllables: 'FA - VO - LA', sound: 'C\'era una volta...', phrase: 'Leggiamo un bel libro insieme', question: 'Cosa sfogliamo per ascoltare una storia?' }
                 ]
             },
             {
-                id: 'veicoli', icon: '🚂', title: 'I Veicoli', color: '#E07A5F', type: 'interactive',
+                id: 'numeri', icon: '🔢', title: 'I Numeri (1 - 5)', color: '#A8DADC', type: 'interactive', unlockWins: 0,
                 slides: [
-                    { emoji: '🚂', word: 'Treno', syllables: 'TRE - NO', sound: 'Ciuf Ciuf!' },
-                    { emoji: '🚗', word: 'Auto', syllables: 'AU - TO', sound: 'Brum Brum!' },
-                    { emoji: '🚒', word: 'Pompieri', syllables: 'POM - PIE - RI', sound: 'Nino Nino!' }
+                    { emoji: '1️⃣', word: 'Uno', en: 'One', syllables: 'U - NO', sound: 'Uno!', phrase: 'Un solo sole nel cielo', question: 'Qual è il numero Uno?' },
+                    { emoji: '2️⃣', word: 'Due', en: 'Two', syllables: 'DU - E', sound: 'Due!', phrase: 'Due manine per applaudire', question: 'Qual è il numero Due?' },
+                    { emoji: '3️⃣', word: 'Tre', en: 'Three', syllables: 'T - RE', sound: 'Tre!', phrase: 'Tre stelline che brillano', question: 'Qual è il numero Tre?' },
+                    { emoji: '4️⃣', word: 'Quattro', en: 'Four', syllables: 'QUAT - TRO', sound: 'Quattro!', phrase: 'Quattro ruote dell\'automobile', question: 'Qual è il numero Quattro?' },
+                    { emoji: '5️⃣', word: 'Cinque', en: 'Five', syllables: 'CIN - QUE', sound: 'Cinque!', phrase: 'Cinque dita della mano: batti il cinque!', question: 'Qual è il numero Cinque?' }
+                ]
+            },
+            {
+                id: 'veicoli', icon: '🚂', title: 'I Veicoli in Viaggio', color: '#E07A5F', type: 'interactive', unlockWins: 0,
+                slides: [
+                    { emoji: '🚂', word: 'Treno', en: 'Train', syllables: 'TRE - NO', sound: 'Ciuf Ciuf!', phrase: 'Il treno corre sui binari', question: 'Chi corre sui binari e fa Ciuf Ciuf?' },
+                    { emoji: '🚗', word: 'Auto', en: 'Car', syllables: 'AU - TO', sound: 'Brum Brum!', phrase: 'L\'automobile viaggia sulla strada', question: 'Chi ha quattro ruote e fa Brum Brum?' },
+                    { emoji: '🚒', word: 'Pompieri', en: 'Fire truck', syllables: 'POM - PIE - RI', sound: 'Nino Nino!', phrase: 'Il camion dei pompieri spegne il fuoco', question: 'Chi è rosso e suona la sirena Nino Nino?' },
+                    { emoji: '✈️', word: 'Aereo', en: 'Airplane', syllables: 'A - E - REO', sound: 'Vola alto tra le nuvole!', phrase: 'L\'aereo vola in alto nel cielo', question: 'Chi ha le ali grandi e vola tra le nuvole?' }
+                ]
+            },
+            /* EPISODI SEGRETI SBLOCCABILI CON I PROGRESSI NELLA SALA GIOCHI */
+            {
+                id: 'dinosauri_segreti', icon: '🦕', title: 'Il Mondo dei Dinosauri', color: '#10B981', type: 'interactive', unlockWins: 5,
+                slides: [
+                    { emoji: '🦕', word: 'Brontosauro', en: 'Dinosaur', syllables: 'DI - NO - SAU - RO', sound: 'Passo gigante: Bum Bum!', phrase: 'Il dinosauro dal collo lungo mangia le foglie', question: 'Chi ha il collo lunghissimo e mangia le foglie?' },
+                    { emoji: '🦖', word: 'Tirannosauro', en: 'T-Rex', syllables: 'TI - REX', sound: 'Roarrr!', phrase: 'Il T-Rex fa un grande ruggito simpatico', question: 'Chi è il re dei dinosauri e fa Roarrr?' },
+                    { emoji: '🥚', word: 'Uovo', en: 'Dino Egg', syllables: 'UO - VO', sound: 'Toc toc! Si schiude!', phrase: 'Dall\'uovo nasce un cucciolo di dinosauro', question: 'Cosa fa Toc Toc prima che nasca il cucciolo?' },
+                    { emoji: '🌋', word: 'Vulcano', en: 'Volcano', syllables: 'VUL - CA - NO', sound: 'Puf! Fumo caldo!', phrase: 'Il grande vulcano fa le nuvolette', question: 'Qual è la montagna che fa le nuvolette di fumo?' }
+                ]
+            },
+            {
+                id: 'musica_orchestra', icon: '🎸', title: 'Gli Strumenti Musicali', color: '#8B5CF6', type: 'interactive', unlockWins: 10,
+                slides: [
+                    { emoji: '🎹', word: 'Pianoforte', en: 'Piano', syllables: 'PIA - NO - FOR - TE', sound: 'Do Re Mi Fa Sol!', phrase: 'Suono i tasti bianchi e neri del pianoforte', question: 'Quale strumento ha tanti tasti bianchi e neri?' },
+                    { emoji: '🥁', word: 'Tamburo', en: 'Drum', syllables: 'TAM - BU - RO', sound: 'Bum Bum Tap!', phrase: 'Batto il ritmo sul tamburo', question: 'Cosa suoniamo con le bacchette facendo Bum Bum?' },
+                    { emoji: '🎸', word: 'Chitarra', en: 'Guitar', syllables: 'CHI - TAR - RA', sound: 'Plin Plon!', phrase: 'Pizzico le corde della chitarra', question: 'Quale strumento ha le corde da pizzicare?' },
+                    { emoji: '🎺', word: 'Tromba', en: 'Trumpet', syllables: 'TROM - BA', sound: 'Pa-ra-pà!', phrase: 'Soffio forte nella tromba dorata', question: 'In quale strumento dorato si soffia per fare Pa-ra-pà?' }
+                ]
+            },
+            {
+                id: 'spazio_stelle', icon: '🚀', title: 'Viaggio nello Spazio', color: '#6366F1', type: 'interactive', unlockWins: 15,
+                slides: [
+                    { emoji: '🚀', word: 'Razzo', en: 'Rocket', syllables: 'RAZ - ZO', sound: 'Tre, due, uno... Via!', phrase: 'Il razzo vola veloce verso le stelle', question: 'Chi parte verso lo spazio facendo Tre Due Uno?' },
+                    { emoji: '🌙', word: 'Luna', en: 'Moon', syllables: 'LU - NA', sound: 'Buonanotte Luna!', phrase: 'La luna illumina la notte', question: 'Chi brilla nel cielo di notte?' },
+                    { emoji: '☀️', word: 'Sole', en: 'Sun', syllables: 'SO - LE', sound: 'Che bel sole caldo!', phrase: 'Il sole ci scalda tutto il giorno', question: 'Chi scalda la Terra ed è giallo e luminoso?' },
+                    { emoji: '🪐', word: 'Pianeta', en: 'Planet', syllables: 'PIA - NE - TA', sound: 'Gira gira con gli anelli!', phrase: 'Il pianeta ha gli anelli colorati', question: 'Chi gira nello spazio con i suoi grandi anelli?' }
                 ]
             }
         ];
@@ -676,6 +996,7 @@
                 title: 'Album di Famiglia',
                 color: '#EC4899',
                 type: 'interactive',
+                unlockWins: 0,
                 slides: slidesToUse
             };
             if (existingIdx > -1) {
@@ -686,207 +1007,35 @@
         }
         syncFamilyEpisodeInData();
 
-        /* CARICAMENTO VIDEO SALVATI (MEMORIA TELEFONO) */
+        /* CARICAMENTO VIDEO YOUTUBE SALVATI NEL TELEFONO */
         try {
-            const savedVideos = JSON.parse(localStorage.getItem('bimbiparla_custom_yt') || '[]');
-            if (Array.isArray(savedVideos)) episodesData.push(...savedVideos);
-        } catch (e) {}
-
-        /* VARIABILI PER REGISTRAZIONE VOCI MULTIPLE (MAMMA, PAPÀ, ECC.) */
-        let rewardAudiosList = [];
-        try {
-            const parsedVoices = JSON.parse(localStorage.getItem('bimbiparla_reward_audios_list') || '[]');
-            if (Array.isArray(parsedVoices)) rewardAudiosList = parsedVoices;
-        } catch (e) {
-            rewardAudiosList = [];
-        }
-        const legacySingleAudio = localStorage.getItem('bimbiparla_reward_audio');
-        if (legacySingleAudio && rewardAudiosList.length === 0) {
-            rewardAudiosList.push({
-                id: 'voice_legacy',
-                label: 'Voce Mamma/Papà 1',
-                data: legacySingleAudio
-            });
-            try {
-                localStorage.setItem('bimbiparla_reward_audios_list', JSON.stringify(rewardAudiosList));
-            } catch (e) {}
-        }
-
-        let mediaRecorder;
-        let audioChunks = [];
-
-        /* VARIABILI WAKE LOCK, FULLSCREEN GUARD S25 E TIMER */
-        let wakeLock = null;
-        let sleepTimer = null;
-        let blueLightPreTimer = null;
-        let sleepDurationMs = 0;
-        let tvAutoInterval = null;
-
-        /* GUARDIA FULLSCREEN SAMSUNG S25 (Nasconde la barra di navigazione inferiore) */
-        async function enterImmersiveFullscreen() {
-            const elem = document.documentElement;
-            try {
-                if (!document.fullscreenElement && elem.requestFullscreen) {
-                    await elem.requestFullscreen({ navigationUI: 'hide' });
-                } else if (!document.webkitFullscreenElement && elem.webkitRequestFullscreen) {
-                    elem.webkitRequestFullscreen();
-                }
-            } catch (e) {}
-        }
-
-        function exitImmersiveFullscreen() {
-            try {
-                if (document.fullscreenElement && document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-            } catch (e) {}
-        }
-
-        /* Blocca i gesti accidentali nella fascia di sicurezza inferiore/superiore S25 */
-        ['s25BottomEdgeGuard', 's25TopEdgeGuard'].forEach(guardId => {
-            const guardEl = document.getElementById(guardId);
-            if (guardEl) {
-                ['touchstart', 'touchmove', 'touchend'].forEach(evName => {
-                    guardEl.addEventListener(evName, (ev) => {
-                        if (isLocked) {
-                            ev.preventDefault();
-                            ev.stopPropagation();
-                        }
-                    }, { passive: false });
+            const savedYt = JSON.parse(localStorage.getItem('bimbiparla_custom_yt') || '[]');
+            if (Array.isArray(savedYt)) {
+                savedYt.forEach(v => {
+                    if (v && v.ytId && !episodesData.some(e => e.id === v.id)) {
+                        episodesData.push(v);
+                    }
                 });
             }
-        });
+        } catch (e) {}
 
-        /* BOLLE SENSORIALI MUSICALI SULLO SCUDO ANTI-TOCCO */
-        const bubbleEmojis = ['🫧', '⭐', '🎵', '🦋', '🌸', '✨'];
-        const bubbleColors = [
-            'rgba(224, 122, 95, 0.45)',
-            'rgba(244, 211, 94, 0.45)',
-            'rgba(132, 169, 140, 0.45)',
-            'rgba(168, 218, 220, 0.55)'
-        ];
-
-        function spawnSensoryBubble(clientX, clientY) {
-            playGentleChime('bubble');
-            const b = document.createElement('div');
-            b.className = 'sensory-bubble';
-            const size = Math.floor(Math.random() * 26) + 52;
-            b.style.width = size + 'px';
-            b.style.height = size + 'px';
-            b.style.left = clientX + 'px';
-            b.style.top = clientY + 'px';
-            b.style.backgroundColor = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
-            b.innerText = bubbleEmojis[Math.floor(Math.random() * bubbleEmojis.length)];
-            document.body.appendChild(b);
-            setTimeout(() => b.remove(), 1200);
-        }
-
-        /* OBSERVER PER SOCIAL FEED (Autoplay/Pause al tocco) */
-        const socialObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const iframe = entry.target.querySelector('iframe');
-                if (iframe && iframe.contentWindow) {
-                    if (entry.isIntersecting) {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                    } else {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                    }
-                }
-            });
-        }, { threshold: 0.6 });
-
-        /* WAKE LOCK (Schermo Acceso) */
-        async function requestWakeLock() {
-            if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {}
-            }
-        }
-        function releaseWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => wakeLock = null).catch(() => {});
-            }
-        }
-
-        /* SPECCHIO MAGICO LOGOPEDICO (Fotocamera frontale) */
-        async function startMagicMirrorCamera() {
-            const widget = document.getElementById('magicMirrorWidget');
-            const video = document.getElementById('magicMirrorVideo');
-            if (!magicMirrorEnabled || !widget || !video) return;
-            try {
-                if (!mirrorStream) {
-                    mirrorStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-                }
-                video.srcObject = mirrorStream;
-                widget.classList.remove('hidden');
-            } catch (e) {
-                widget.classList.add('hidden');
-            }
-        }
-
-        function stopMagicMirrorCamera() {
-            const widget = document.getElementById('magicMirrorWidget');
-            if (widget) widget.classList.add('hidden');
-            if (mirrorStream) {
-                mirrorStream.getTracks().forEach(t => t.stop());
-                mirrorStream = null;
-            }
-        }
-
-        function toggleMagicMirror() {
-            magicMirrorEnabled = !magicMirrorEnabled;
-            const settingBtn = document.getElementById('mirrorSettingBtn');
-            if (settingBtn) {
-                settingBtn.innerText = magicMirrorEnabled ? 'ON ✨' : 'OFF';
-                settingBtn.className = magicMirrorEnabled
-                    ? 'bg-emerald-600 text-white font-extrabold px-3 py-1 rounded-lg transition'
-                    : 'bg-slate-200 text-slate-700 font-extrabold px-3 py-1 rounded-lg transition';
-            }
-            const playerOpen = !document.getElementById('playerOverlay').classList.contains('hidden');
-            if (playerOpen && magicMirrorEnabled && activeEpisode && activeEpisode.type === 'interactive') {
-                startMagicMirrorCamera();
-            } else {
-                stopMagicMirrorCamera();
-            }
-        }
-
-        /* FILTRO LUCE BLU NOTTURNO & ROTAZIONE 180° */
-        function toggleBlueLightFilter(forceState) {
-            blueLightActive = typeof forceState === 'boolean' ? forceState : !blueLightActive;
-            const overlay = document.getElementById('blueLightOverlay');
-            const label = document.getElementById('quickNightLabel');
-            if (overlay) {
-                overlay.classList.toggle('hidden', !blueLightActive);
-            }
-            if (label) {
-                label.innerText = blueLightActive ? 'Luce Notte: ON' : 'Luce Notte: OFF';
-            }
-        }
-
-        function toggleFlip180() {
-            isFlipped180 = !isFlipped180;
-            const wrapper = document.getElementById('playerViewportWrapper');
-            if (wrapper) {
-                wrapper.classList.toggle('flipped-180', isFlipped180);
-            }
-        }
-
-        /* MOTORE PRINCIPALE E SINTESI VOCALE NATURALE */
+        /* MOTORE PRINCIPALE E SINTESI VOCALE NATURALE (ITALIANO + INGLESE) */
         let bestItalianVoice = null;
+        let bestEnglishVoice = null;
         function loadVoices() {
             if (!('speechSynthesis' in window)) return;
-            const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('it'));
-            bestItalianVoice = voices.find(v => v.name.includes('Premium') || v.name.includes('Natural') || v.name.includes('Alice') || v.name.includes('Federica') || v.name.includes('Elsa') || v.name.includes('Google')) || voices[0] || null;
+            const allVoices = window.speechSynthesis.getVoices();
+            const itVoices = allVoices.filter(v => v.lang.startsWith('it'));
+            bestItalianVoice = itVoices.find(v => v.name.includes('Premium') || v.name.includes('Natural') || v.name.includes('Alice') || v.name.includes('Federica') || v.name.includes('Elsa') || v.name.includes('Google')) || itVoices[0] || null;
+            const enVoices = allVoices.filter(v => v.lang.startsWith('en'));
+            bestEnglishVoice = enVoices.find(v => v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google')) || enVoices[0] || null;
         }
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = loadVoices;
             loadVoices();
         }
 
-        function speakText(text, isReward = false) {
+        function speakText(text, isReward = false, englishWord = null) {
             if (isReward && rewardAudiosList.length > 0) {
                 const randomVoice = rewardAudiosList[Math.floor(Math.random() * rewardAudiosList.length)];
                 if (randomVoice && randomVoice.data) {
@@ -900,9 +1049,200 @@
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'it-IT';
             if (bestItalianVoice) msg.voice = bestItalianVoice;
-            msg.rate = 0.88;
+            msg.rate = childAgeLevel === 1 ? 0.85 : 0.92;
             msg.pitch = 1.08;
             window.speechSynthesis.speak(msg);
+
+            if (bilingualMode && englishWord) {
+                const enMsg = new SpeechSynthesisUtterance('In inglese: ' + englishWord);
+                enMsg.lang = 'en-US';
+                if (bestEnglishVoice) enMsg.voice = bestEnglishVoice;
+                enMsg.rate = 0.88;
+                window.speechSynthesis.speak(enMsg);
+            }
+        }
+
+        /* GESTIONE LIVELLO D'ETÀ (1-2 ANNI / 2-3 ANNI / 3-4 ANNI) & BILINGUISMO */
+        function setChildAgeLevel(level) {
+            childAgeLevel = level;
+            try { localStorage.setItem('bimbiparla_age_level', String(level)); } catch (e) {}
+            [1, 2, 3].forEach(lvl => {
+                const b = document.getElementById('ageBtn_' + lvl);
+                if (!b) return;
+                if (lvl === level) {
+                    b.className = 'px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition flex items-center gap-1 bg-[#E07A5F] text-white shadow-sm';
+                } else {
+                    b.className = 'px-2.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition flex items-center gap-1 bg-white text-[#2B2D42] border border-amber-200';
+                }
+            });
+
+            const subInt = document.getElementById('modeSub_interactive');
+            const subGam = document.getElementById('modeSub_games');
+            if (subInt && subGam) {
+                if (level === 1) {
+                    subInt.innerText = 'Parole & Sillabe';
+                    subGam.innerText = 'Tocca la Figura';
+                } else if (level === 2) {
+                    subInt.innerText = 'Prime Frasi (2-3 parole)';
+                    subGam.innerText = 'Indovina il Concetto';
+                } else {
+                    subInt.innerText = 'Frasi + Inglese';
+                    subGam.innerText = 'Memory & Logica';
+                }
+            }
+            renderEpisodes();
+        }
+
+        function toggleBilingualMode() {
+            bilingualMode = !bilingualMode;
+            try { localStorage.setItem('bimbiparla_bilingual', String(bilingualMode)); } catch (e) {}
+            updateBilingualUI();
+            renderEpisodes();
+        }
+
+        function updateBilingualUI() {
+            const btn = document.getElementById('bilingualToggleBtn');
+            const lbl = document.getElementById('bilingualToggleLabel');
+            if (!btn || !lbl) return;
+            if (bilingualMode) {
+                btn.className = 'text-[11px] sm:text-xs font-extrabold px-2.5 py-1.5 rounded-xl border-2 border-sky-500 bg-sky-500 text-white flex items-center gap-1 shadow-sm transition';
+                lbl.innerText = 'IT + Inglese 🇬🇧';
+            } else {
+                btn.className = 'text-[11px] sm:text-xs font-extrabold px-2.5 py-1.5 rounded-xl border border-sky-300 bg-white text-sky-900 flex items-center gap-1 shadow-sm transition';
+                lbl.innerText = 'Solo Italiano';
+            }
+        }
+
+        /* ALBUM DELLE FIGURINE PARLANTI & PACCO REGALO MAGICO */
+        function openStickerAlbum() {
+            renderStickerAlbumUI();
+            document.getElementById('stickerAlbumModal').classList.remove('hidden');
+        }
+
+        function renderStickerAlbumUI() {
+            const grid = document.getElementById('stickerGridContainer');
+            const badge = document.getElementById('stickerCountBadge');
+            const goalText = document.getElementById('stickerNextGoalText');
+            if (!grid) return;
+
+            badge.innerText = `${unlockedStickers.length} / ${allStickersCatalog.length}`;
+            const wins = childStats.gamesWon || 0;
+            const rem = 5 - (wins % 5);
+            goalText.innerText = unlockedStickers.length >= allStickersCatalog.length
+                ? '🎉 Hai collezionato tutte le figurine!'
+                : `🎁 Prossimo Pacco Regalo tra ${rem} ${rem === 1 ? 'gioco indovinato' : 'giochi indovinati'}!`;
+
+            grid.innerHTML = allStickersCatalog.map(st => {
+                const isOwned = unlockedStickers.includes(st.id) || parentUnlockedAll;
+                if (isOwned) {
+                    return `
+                        <button onclick="playStickerVoice('${st.name.replace(/'/g, "\\'")}', '${st.sound.replace(/'/g, "\\'")}')" class="bg-white hover:bg-pink-50 border-3 border-pink-300 rounded-2xl p-3 flex flex-col items-center justify-center shadow-sm active:scale-95 transition">
+                            <span class="text-4xl sm:text-5xl mb-1.5 animate-breathe">${st.emoji}</span>
+                            <span class="font-extrabold text-xs text-[#2B2D42] text-center">${st.name}</span>
+                            <span class="text-[10px] text-pink-600 font-bold mt-0.5">🔊 Ascolta</span>
+                        </button>
+                    `;
+                }
+                return `
+                    <div class="bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-col items-center justify-center opacity-70">
+                        <span class="text-3xl sm:text-4xl mb-1.5 grayscale opacity-40">🎁</span>
+                        <span class="font-bold text-[11px] text-slate-400 text-center">Misterioso</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function playStickerVoice(name, sound) {
+            playGentleChime('win');
+            speakText(`${name}! ${sound}`);
+        }
+
+        function triggerGiftBoxModal() {
+            const remaining = allStickersCatalog.filter(s => !unlockedStickers.includes(s.id));
+            if (remaining.length === 0) return;
+            const modal = document.getElementById('giftBoxModal');
+            document.getElementById('giftBoxInteractive').classList.remove('hidden');
+            document.getElementById('giftBoxRevealedContent').classList.add('hidden');
+            document.getElementById('giftBoxCloseBtn').classList.add('hidden');
+            document.getElementById('giftBoxSubtitle').innerText = 'Tocca il pacco regalo per scartarlo!';
+            modal.classList.remove('hidden');
+            speakText('Sorpresa! C\'è un pacco regalo per te! Toccalo per aprirlo!');
+        }
+
+        function openGiftBoxReward() {
+            const remaining = allStickersCatalog.filter(s => !unlockedStickers.includes(s.id));
+            const picked = remaining.length > 0 ? remaining[Math.floor(Math.random() * remaining.length)] : allStickersCatalog[0];
+            if (!unlockedStickers.includes(picked.id)) {
+                unlockedStickers.push(picked.id);
+                try { localStorage.setItem('bimbiparla_stickers', JSON.stringify(unlockedStickers)); } catch (e) {}
+            }
+            updateHeaderProgressBadges();
+            playGentleChime('win');
+            createConfetti();
+
+            document.getElementById('giftBoxInteractive').classList.add('hidden');
+            document.getElementById('giftStickerEmoji').innerText = picked.emoji;
+            document.getElementById('giftStickerName').innerText = picked.name;
+            document.getElementById('giftBoxRevealedContent').classList.remove('hidden');
+            document.getElementById('giftBoxCloseBtn').classList.remove('hidden');
+            document.getElementById('giftBoxSubtitle').innerText = 'Hai sbloccato una nuova figurina parlante!';
+            speakText(`Evviva! Hai trovato ${picked.name}! ${picked.sound}`, true);
+        }
+
+        function closeGiftBoxModal() {
+            document.getElementById('giftBoxModal').classList.add('hidden');
+            renderEpisodes();
+        }
+
+        function unlockAllContentParent() {
+            parentUnlockedAll = true;
+            unlockedStickers = allStickersCatalog.map(s => s.id);
+            try {
+                localStorage.setItem('bimbiparla_unlocked_all', 'true');
+                localStorage.setItem('bimbiparla_stickers', JSON.stringify(unlockedStickers));
+            } catch (e) {}
+            updateHeaderProgressBadges();
+            renderEpisodes();
+            speakText('Tutti gli episodi e le figurine sono stati sbloccati!');
+        }
+
+        /* MINI-PIANOFORTE MUSICALE DEGLI ANIMALI */
+        function openPianoModal() {
+            document.getElementById('pianoModal').classList.remove('hidden');
+        }
+
+        function setPianoInstrument(inst) {
+            pianoInstrument = inst;
+            document.getElementById('pianoInst_notes').className = inst === 'notes'
+                ? 'bg-purple-600 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs'
+                : 'bg-white text-purple-800 border border-purple-200 font-extrabold px-3 py-1.5 rounded-xl text-xs';
+            document.getElementById('pianoInst_animals').className = inst === 'animals'
+                ? 'bg-purple-600 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs'
+                : 'bg-white text-purple-800 border border-purple-200 font-extrabold px-3 py-1.5 rounded-xl text-xs';
+        }
+
+        function playPianoKey(index) {
+            const scaleFreqs = [261.63, 293.66, 329.63, 349.23, 392.00];
+            const animalSounds = ['Muuu!', 'Oink Oink!', 'Miao!', 'Bau Bau!', 'Pio Pio!'];
+            try {
+                initAudioContext();
+                if (audioCtx) {
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(scaleFreqs[index] || 261.63, now);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.56);
+                }
+            } catch (e) {}
+            if (pianoInstrument === 'animals') {
+                speakText(animalSounds[index] || 'La la!');
+            }
         }
 
         function setTimer(minutes) {
@@ -942,6 +1282,9 @@
 
         function initApp() {
             loadVoices();
+            updateBilingualUI();
+            updateHeaderProgressBadges();
+            setChildAgeLevel(childAgeLevel);
             setAppMode('tv');
         }
 
@@ -1015,26 +1358,55 @@
             const btnStyle = modeBtnLabels[currentMode] || modeBtnLabels.tv;
 
             const visibleEpisodes = episodesData.filter(ep => ep.type === 'interactive' || (ep.type === 'youtube' && currentMode === 'tv'));
+            const currentWins = childStats.gamesWon || 0;
 
-            grid.innerHTML = visibleEpisodes.map(ep => `
-                <div onclick="openEpisode('${ep.id}')" class="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-2 border-[#E8E2D5] shadow-sm hover:shadow-md active:scale-[0.98] transition-all cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between gap-1 mb-2 sm:mb-4">
-                            <span class="text-3xl sm:text-5xl p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0" style="background-color: ${ep.color}25">${ep.icon}</span>
-                            <span class="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 text-slate-600 truncate">
-                                ${ep.type === 'youtube' ? 'YouTube' : ep.slides.length + ' Parole'}
-                            </span>
+            grid.innerHTML = visibleEpisodes.map(ep => {
+                const reqWins = ep.unlockWins || 0;
+                const isEpLocked = !parentUnlockedAll && reqWins > currentWins;
+
+                if (isEpLocked) {
+                    const missing = reqWins - currentWins;
+                    return `
+                        <div onclick="speakText('Indovina altri ${missing} giochi nella Sala Giochi per sbloccare ${ep.title.replace(/'/g, "\\'")}!')" class="bg-slate-100/90 rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-2 border-dashed border-amber-300 shadow-sm flex flex-col justify-between cursor-pointer opacity-90">
+                            <div>
+                                <div class="flex items-center justify-between gap-1 mb-2 sm:mb-4">
+                                    <span class="text-3xl sm:text-5xl p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-amber-100">${ep.icon}</span>
+                                    <span class="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                                        🔒 Sbloccabile
+                                    </span>
+                                </div>
+                                <h3 class="font-display text-sm sm:text-xl font-bold text-[#2B2D42] mb-1 leading-snug">${ep.title}</h3>
+                                <p class="text-[11px] text-amber-800 font-bold mb-3">
+                                    🏆 Vinci ancora ${missing} ${missing === 1 ? 'gioco' : 'giochi'} per sbloccarlo!
+                                </p>
+                            </div>
+                            <div class="w-full py-2 sm:py-2.5 rounded-xl bg-amber-200/70 text-amber-900 font-extrabold text-[11px] sm:text-xs text-center">
+                                🔒 Traguardo: ${currentWins} / ${reqWins} Vittorie
+                            </div>
                         </div>
-                        <h3 class="font-display text-sm sm:text-xl font-bold text-[#2B2D42] mb-1 leading-snug line-clamp-2">${ep.title}</h3>
-                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-5 hidden sm:block">
-                            ${ep.id === 'album_famiglia' ? 'Foto reali e voce di Mamma e Papà' : (ep.type === 'youtube' ? 'Riproduzione protetta con Scudo Anti-Tocco' : 'Impara sillabe, suoni e parole giocando')}
-                        </p>
+                    `;
+                }
+
+                return `
+                    <div onclick="openEpisode('${ep.id}')" class="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-2 border-[#E8E2D5] shadow-sm hover:shadow-md active:scale-[0.98] transition-all cursor-pointer flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-1 mb-2 sm:mb-4">
+                                <span class="text-3xl sm:text-5xl p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0" style="background-color: ${ep.color}25">${ep.icon}</span>
+                                <span class="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 text-slate-600 truncate">
+                                    ${ep.type === 'youtube' ? 'YouTube' : ep.slides.length + (childAgeLevel >= 2 ? ' Frasi' : ' Parole')}
+                                </span>
+                            </div>
+                            <h3 class="font-display text-sm sm:text-xl font-bold text-[#2B2D42] mb-1 leading-snug line-clamp-2">${ep.title}</h3>
+                            <p class="text-[11px] sm:text-xs text-slate-500 mb-3 sm:mb-5 hidden sm:block">
+                                ${ep.id === 'album_famiglia' ? 'Foto reali e voce di Mamma e Papà' : (ep.type === 'youtube' ? 'Riproduzione protetta con Scudo Anti-Tocco' : (childAgeLevel === 1 ? 'Impara sillabe, suoni e prime parole' : 'Costruisci prime frasi, concetti e logica'))}
+                            </p>
+                        </div>
+                        <button class="w-full py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-xs sm:text-sm shadow-sm transition ${btnStyle.bg}">
+                            ${btnStyle.text}
+                        </button>
                     </div>
-                    <button class="w-full py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-xs sm:text-sm shadow-sm transition ${btnStyle.bg}">
-                        ${btnStyle.text}
-                    </button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function openSocialFeed(startIndex = 0) {
@@ -1154,8 +1526,13 @@
             const slide = activeEpisode.slides[slideIndex];
             if (!slide) return;
 
-            // MODALITÀ SALA GIOCHI
+            // MODALITÀ SALA GIOCHI ADATTIVA PER ETÀ (1-2 ANNI: Trova Figura | 2-3 ANNI: Indovina il Concetto | 3-4 ANNI: Memory delle Coppie)
             if (currentMode === 'games') {
+                if (childAgeLevel === 3 && activeEpisode.slides.length >= 2) {
+                    renderMemoryGameStage();
+                    return;
+                }
+
                 // Costruisce un pool di alternative anche se l'episodio ha poche slide
                 let pool = activeEpisode.slides.filter((_, idx) => idx !== slideIndex);
                 if (pool.length < 2) {
@@ -1169,15 +1546,22 @@
                 const shuffledOthers = pool.sort(() => 0.5 - Math.random()).slice(0, 2);
                 const choices = [slide, ...shuffledOthers].sort(() => 0.5 - Math.random());
 
+                const isConceptQuestion = childAgeLevel >= 2 && slide.question;
+                const promptTitleHtml = isConceptQuestion
+                    ? `<span class="text-[#E07A5F]">${slide.question}</span>`
+                    : `Tocca: <span class="text-[#E07A5F] underline">${slide.word}</span>!`;
+
                 stage.innerHTML = `
                     <div class="animate-fade-in w-full max-w-xl bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-8 shadow-2xl border-4 border-[#F4D35E]">
-                        <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-amber-600 mb-1">🎈 Sala Giochi Interattiva</div>
-                        <h2 class="font-display text-xl sm:text-4xl font-extrabold text-[#2B2D42] mb-4 sm:mb-6">
-                            Tocca: <span class="text-[#E07A5F] underline">${slide.word}</span>!
+                        <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-amber-600 mb-1">
+                            ${isConceptQuestion ? '🦊 Quiz Concetti (2-3 Anni)' : '🐣 Sala Giochi (1-2 Anni)'}
+                        </div>
+                        <h2 class="font-display text-lg sm:text-3xl font-extrabold text-[#2B2D42] mb-4 sm:mb-6">
+                            ${promptTitleHtml}
                         </h2>
                         <div class="grid grid-cols-3 gap-2.5 sm:gap-6">
                             ${choices.map(c => `
-                                <button onclick="checkGameAnswer(this, '${c.word.replace(/'/g, "\\'")}', '${slide.word.replace(/'/g, "\\'")}')" class="aspect-square rounded-2xl sm:rounded-3xl bg-[#FFFDF7] hover:bg-amber-50 border-3 sm:border-4 border-[#E8E2D5] shadow-md flex flex-col items-center justify-center p-2 sm:p-4 transition transform active:scale-95 overflow-hidden">
+                                <button onclick="checkGameAnswer(this, '${c.word.replace(/'/g, "\\'")}', '${slide.word.replace(/'/g, "\\'")}', '${(c.en || '').replace(/'/g, "\\'")}')" class="aspect-square rounded-2xl sm:rounded-3xl bg-[#FFFDF7] hover:bg-amber-50 border-3 sm:border-4 border-[#E8E2D5] shadow-md flex flex-col items-center justify-center p-2 sm:p-4 transition transform active:scale-95 overflow-hidden">
                                     ${c.photoData
                                         ? `<img src="${c.photoData}" class="w-14 h-14 sm:w-24 sm:h-24 object-cover rounded-xl mb-1 border-2 border-amber-300">`
                                         : `<span class="text-4xl sm:text-7xl mb-1 sm:mb-2 select-none">${c.emoji || '🌟'}</span>`
@@ -1188,29 +1572,140 @@
                         </div>
                     </div>
                 `;
-                speakText("Dov'è " + slide.word + "?");
+                speakText(isConceptQuestion ? slide.question : ("Dov'è " + slide.word + "?"));
                 return;
             }
 
-            // MODALITÀ TV O TOCCA & PARLA
-            // Se siamo in modalità TV Continua, lo Scudo z-30 deve intercettare i tocchi per fare le bolle; in Tocca & Parla invece la card è cliccabile
+            // MODALITÀ TV O TOCCA & PARLA (Con Prime Frasi a 2-3 anni e Inglese opzionale)
             stage.style.pointerEvents = (currentMode === 'tv' && isLocked) ? 'none' : 'auto';
 
+            const phraseBlockHtml = (childAgeLevel >= 2 && slide.phrase) ? `
+                <div class="mt-2.5 bg-amber-100/90 text-amber-950 font-extrabold px-4 py-1.5 rounded-2xl text-xs sm:text-base border border-amber-300 shadow-sm">
+                    🗣️ "${slide.phrase}"
+                </div>
+            ` : '';
+
+            const englishBadgeHtml = (bilingualMode && slide.en) ? `
+                <div class="mt-2 bg-sky-100 text-sky-900 font-extrabold px-3 py-1 rounded-full text-xs sm:text-sm border border-sky-300">
+                    🇬🇧 English: <strong>${slide.en}</strong>
+                </div>
+            ` : '';
+
             stage.innerHTML = `
-                <div onclick="triggerSlideVoice()" class="animate-fade-in cursor-pointer bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-10 shadow-2xl border-4 border-white max-w-md sm:max-w-lg w-full flex flex-col items-center justify-center transition transform active:scale-95">
+                <div onclick="triggerSlideVoice()" class="animate-fade-in cursor-pointer bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-9 shadow-2xl border-4 border-white max-w-md sm:max-w-lg w-full flex flex-col items-center justify-center transition transform active:scale-95">
                     ${renderSlideVisual(slide)}
                     <div class="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#84A98C] mb-1">${slide.syllables || slide.word.toUpperCase()}</div>
-                    <h2 class="font-display text-3xl sm:text-5xl font-black text-[#2B2D42] mb-2 sm:mb-3">${slide.word}</h2>
+                    <h2 class="font-display text-3xl sm:text-5xl font-black text-[#2B2D42] mb-2">${slide.word}</h2>
                     <div class="bg-[#F4D35E]/35 text-[#2B2D42] font-extrabold px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-sm sm:text-lg">
                         🔊 "${slide.sound || slide.word}"
                     </div>
-                    <div class="mt-3 sm:mt-4 flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-extrabold">
-                        <span>🎤</span> <span>Ripeti tu: ${slide.syllables || slide.word}</span>
+                    ${phraseBlockHtml}
+                    ${englishBadgeHtml}
+                    <div class="mt-3 flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-extrabold">
+                        <span>🎤</span> <span>Ripeti tu: ${childAgeLevel >= 2 && slide.phrase ? slide.phrase : (slide.syllables || slide.word)}</span>
                     </div>
                 </div>
             `;
 
             triggerSlideVoice();
+        }
+
+        /* GIOCO DEL MEMORY DELLE COPPIE (LIVELLO 3: 3-4 ANNI) */
+        let memoryDeck = [];
+        let memoryFirstCard = null;
+        let memoryLockBoard = false;
+        let memoryMatchedPairs = 0;
+
+        function renderMemoryGameStage() {
+            const stage = document.getElementById('interactiveStage');
+            stage.style.pointerEvents = 'auto';
+            const pool = [...activeEpisode.slides];
+            while (pool.length < 3) {
+                pool.push({ emoji: '🌟', word: 'Stella', en: 'Star' });
+            }
+            const selected = pool.sort(() => 0.5 - Math.random()).slice(0, 3);
+            memoryDeck = [...selected, ...selected]
+                .map((item, idx) => ({ ...item, uid: idx, matched: false }))
+                .sort(() => 0.5 - Math.random());
+            memoryFirstCard = null;
+            memoryLockBoard = false;
+            memoryMatchedPairs = 0;
+
+            stage.innerHTML = `
+                <div class="animate-fade-in w-full max-w-xl bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-2xl border-4 border-[#A8DADC]">
+                    <div class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-sky-700 mb-1">🦉 Gioco del Memory (3-4 Anni)</div>
+                    <h2 class="font-display text-lg sm:text-2xl font-extrabold text-[#2B2D42] mb-3 sm:mb-4">
+                        Trova le 3 coppie uguali!
+                    </h2>
+                    <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
+                        ${memoryDeck.map((card, i) => `
+                            <button id="memCard_${i}" onclick="flipMemoryCard(${i})" class="aspect-square rounded-2xl bg-[#2B2D42] text-white border-4 border-sky-200 shadow-md flex flex-col items-center justify-center p-2 transition transform active:scale-95">
+                                <span id="memCardIcon_${i}" class="text-3xl sm:text-5xl">❓</span>
+                                <span id="memCardLabel_${i}" class="text-[11px] sm:text-xs font-extrabold mt-1 hidden">${card.word}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            speakText('Trova le coppie uguali! Tocca una carta.');
+        }
+
+        function flipMemoryCard(idx) {
+            if (memoryLockBoard) return;
+            const card = memoryDeck[idx];
+            if (!card || card.matched) return;
+            if (memoryFirstCard && memoryFirstCard.idx === idx) return;
+
+            const btn = document.getElementById('memCard_' + idx);
+            const icon = document.getElementById('memCardIcon_' + idx);
+            const lbl = document.getElementById('memCardLabel_' + idx);
+            if (!btn || !icon || !lbl) return;
+
+            btn.className = 'aspect-square rounded-2xl bg-[#FFFDF7] text-[#2B2D42] border-4 border-[#F4D35E] shadow-md flex flex-col items-center justify-center p-2 transition transform';
+            icon.innerText = card.emoji || '🌟';
+            lbl.classList.remove('hidden');
+            playGentleChime('bubble');
+            speakText(card.word, false, card.en);
+
+            if (!memoryFirstCard) {
+                memoryFirstCard = { idx, card };
+                return;
+            }
+
+            memoryLockBoard = true;
+            const firstIdx = memoryFirstCard.idx;
+            const firstCard = memoryFirstCard.card;
+
+            if (firstCard.word === card.word) {
+                card.matched = true;
+                firstCard.matched = true;
+                memoryFirstCard = null;
+                memoryLockBoard = false;
+                memoryMatchedPairs++;
+
+                if (memoryMatchedPairs >= 3) {
+                    recordGameAttempt(true, card.word);
+                    playGentleChime('win');
+                    createConfetti();
+                    speakText('Super bravissima! Hai trovato tutte le coppie!', true);
+                    setTimeout(() => renderMemoryGameStage(), 2200);
+                }
+            } else {
+                setTimeout(() => {
+                    [firstIdx, idx].forEach(i => {
+                        const b = document.getElementById('memCard_' + i);
+                        const ic = document.getElementById('memCardIcon_' + i);
+                        const lb = document.getElementById('memCardLabel_' + i);
+                        if (b && ic && lb) {
+                            b.className = 'aspect-square rounded-2xl bg-[#2B2D42] text-white border-4 border-sky-200 shadow-md flex flex-col items-center justify-center p-2 transition transform';
+                            ic.innerText = '❓';
+                            lb.classList.add('hidden');
+                        }
+                    });
+                    memoryFirstCard = null;
+                    memoryLockBoard = false;
+                }, 1100);
+            }
         }
 
         function triggerSlideVoice() {
@@ -1220,18 +1715,21 @@
             recordWordHeard(slide.word);
             if (slide.audioData) {
                 const customAudio = new Audio(slide.audioData);
-                customAudio.play().catch(() => speakText(`${slide.word}. ${slide.sound || ''}`));
+                customAudio.play().catch(() => speakText(`${slide.word}. ${slide.sound || ''}`, false, slide.en));
                 return;
             }
-            speakText(`${slide.word}. ${slide.sound || ''}`);
+            const textToSpeak = (childAgeLevel >= 2 && slide.phrase)
+                ? `${slide.word}. ${slide.phrase}`
+                : `${slide.word}. ${slide.sound || ''}`;
+            speakText(textToSpeak, false, slide.en);
         }
 
-        function checkGameAnswer(btnEl, pickedWord, targetWord) {
+        function checkGameAnswer(btnEl, pickedWord, targetWord, englishWord = '') {
             if (pickedWord === targetWord) {
                 recordGameAttempt(true, targetWord);
                 playGentleChime('win');
                 createConfetti();
-                speakText("Bravissima! È proprio " + targetWord + "!", true);
+                speakText("Bravissima! È proprio " + targetWord + "!", true, englishWord);
                 setTimeout(() => {
                     nextSlide();
                 }, 1800);
@@ -1715,16 +2213,19 @@
             }
         }
 
-        /* ESPORTA E IMPORTA BACKUP COMPLETO (VIDEO + VOCI + FOTO FAMIGLIA + STATISTICHE) */
+        /* ESPORTA E IMPORTA BACKUP COMPLETO (VIDEO + VOCI + FOTO FAMIGLIA + STATISTICHE + FIGURINE) */
         function exportAppBackup() {
             const customYt = episodesData.filter(e => e.type === 'youtube');
             const backupPayload = {
-                version: 2,
+                version: 3,
                 exportedAt: new Date().toISOString(),
                 customVideos: customYt,
                 rewardVoices: rewardAudiosList,
                 familyCards: familyCustomCards,
-                childStats: childStats
+                childStats: childStats,
+                unlockedStickers: unlockedStickers,
+                childAgeLevel: childAgeLevel,
+                bilingualMode: bilingualMode
             };
             const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
@@ -1790,6 +2291,16 @@
                         saveChildStats();
                     }
 
+                    if (Array.isArray(data.unlockedStickers)) {
+                        unlockedStickers = Array.from(new Set([...unlockedStickers, ...data.unlockedStickers]));
+                        localStorage.setItem('bimbiparla_stickers', JSON.stringify(unlockedStickers));
+                    }
+
+                    if (data.childAgeLevel) {
+                        setChildAgeLevel(parseInt(data.childAgeLevel, 10) || 1);
+                    }
+
+                    updateHeaderProgressBadges();
                     renderChildStatsUI();
                     renderFamilyCardsList();
                     renderParentVideoList();
