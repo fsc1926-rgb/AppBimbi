@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#FFFDF7">
+    <meta name="theme-color" content="#E07A5F">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BimbiParla TV">
     <meta name="description" content="La TV Educativa interattiva per imparare a parlare e capire.">
     <title>BimbiParla TV — Impara a Parlare & Scudo Bimbo 360°</title>
+
+    <!-- PWA MANIFEST & ICONA NATIVA (Obbligatori per installazione su Android S25 e iOS) -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23E07A5F'/%3E%3Ccircle cx='256' cy='265' r='175' fill='%23FFFDF7'/%3E%3Ccircle cx='192' cy='230' r='28' fill='%232B2D42'/%3E%3Ccircle cx='320' cy='230' r='28' fill='%232B2D42'/%3E%3Cpath d='M 200 305 Q 256 365 312 305' stroke='%23E07A5F' stroke-width='28' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23E07A5F'/%3E%3Ccircle cx='256' cy='265' r='175' fill='%23FFFDF7'/%3E%3Ccircle cx='192' cy='230' r='28' fill='%232B2D42'/%3E%3Ccircle cx='320' cy='230' r='28' fill='%232B2D42'/%3E%3Cpath d='M 200 305 Q 256 365 312 305' stroke='%23E07A5F' stroke-width='28' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -156,8 +162,8 @@
                 </div>
             </div>
             <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <button id="installAppBtn" onclick="installApp()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition">
-                    <span>📱</span> <span>Installa</span>
+                <button id="installAppBtn" onclick="installApp()" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition">
+                    <span>📲</span> <span>Installa App</span>
                 </button>
                 <button onclick="openStickerAlbum()" class="bg-pink-500 hover:bg-pink-600 text-white font-extrabold px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs shadow-sm flex items-center gap-1 transition" title="Album degli Adesivi Parlanti">
                     <span>🌟</span> <span>Figurine (<span id="headerStickerCount">0</span>)</span>
@@ -238,7 +244,7 @@
         <div id="episodesGrid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5"></div>
     </main>
 
-    <!-- MODALE ALBUM DELLE FIGURINE PARLANTI (COLLEZIONE ADESIVI SBLOCCABILI) -->
+    <!-- MODALE ALBUM DELLE FIGURINE PARLANTI -->
     <div id="stickerAlbumModal" class="fixed inset-0 z-50 bg-[#2B2D42]/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4">
         <div class="bg-[#FFFDF7] rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto border-4 border-pink-300">
             <button onclick="document.getElementById('stickerAlbumModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F]">✖</button>
@@ -293,7 +299,7 @@
         </div>
     </div>
 
-    <!-- OVERLAY PACCO REGALO MAGICO (Compare ogni 5 vittorie nella Sala Giochi) -->
+    <!-- OVERLAY PACCO REGALO MAGICO -->
     <div id="giftBoxModal" class="fixed inset-0 z-[70] bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border-4 border-[#F4D35E] animate-fade-in">
             <div class="text-xs font-extrabold uppercase tracking-widest text-pink-600 mb-1">🎉 Traguardo Raggiunto!</div>
@@ -318,7 +324,7 @@
         <!-- FILTRO LUCE BLU PROTEGGI OCCHI -->
         <div id="blueLightOverlay" class="fixed inset-0 pointer-events-none z-45 bg-amber-500/25 mix-blend-multiply hidden transition-opacity duration-700"></div>
 
-        <!-- FASCIA ANTI-SWIPE BORDO INFERIORE/SUPERIORE S25 (Cuscinetto che assorbe i tocchi vicino ai bordi del telefono) -->
+        <!-- FASCIA ANTI-SWIPE BORDO INFERIORE/SUPERIORE S25 -->
         <div id="s25BottomEdgeGuard" class="fixed bottom-0 left-0 right-0 h-8 z-45 pointer-events-auto bg-transparent"></div>
         <div id="s25TopEdgeGuard" class="fixed top-0 left-0 right-20 h-6 z-45 pointer-events-auto bg-transparent"></div>
 
@@ -333,7 +339,7 @@
                     </div>
                 </div>
 
-                <!-- SPECCHIO MAGICO LOGOPEDICO (Fotocamera frontale opzionale in un cerchio morbido) -->
+                <!-- SPECCHIO MAGICO LOGOPEDICO -->
                 <div id="magicMirrorWidget" class="hidden absolute top-16 left-3 sm:top-16 sm:left-5 z-45 flex flex-col items-center pointer-events-none">
                     <div class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#F4D35E] shadow-2xl bg-slate-800">
                         <video id="magicMirrorVideo" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
@@ -342,15 +348,15 @@
                     <span class="bg-[#F4D35E] text-[#2B2D42] text-[10px] font-extrabold px-2 py-0.5 rounded-full -mt-2 shadow">Guardati e ripeti!</span>
                 </div>
 
-                <!-- STAGE (Dove appaiono animali, foto di famiglia e colori): z-40 per superare lo scudo -->
+                <!-- STAGE -->
                 <div id="interactiveStage" class="relative z-40 w-full max-w-5xl px-3 flex flex-col items-center justify-center text-center mt-6"></div>
 
-                <!-- FEED SOCIAL (TikTok Style con cornice sicura S25) -->
+                <!-- FEED SOCIAL -->
                 <div id="socialFeedContainer" class="hidden absolute inset-0 z-35 overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-black"></div>
 
             </div>
 
-            <!-- SCUDO INVISIBILE CON BOLLE SENSORIALI MUSICALI (z-30) -->
+            <!-- SCUDO INVISIBILE CON BOLLE SENSORIALI MUSICALI -->
             <div id="touchShield" class="fixed inset-0 z-30 cursor-default"></div>
 
             <!-- CONTROLLI GENITORE SBLOCCATI -->
@@ -363,7 +369,7 @@
                 <button id="btnNextSlide" onclick="nextSlide()" class="bg-slate-700 hover:bg-slate-600 px-2.5 py-2 rounded-xl text-xs font-bold">Avanti ▶</button>
             </div>
 
-            <!-- TASTO ESCI SUBDOLO IN ALTO A SINISTRA (Appare solo a lucchetto sbloccato) -->
+            <!-- TASTO ESCI SUBDOLO IN ALTO A SINISTRA -->
             <button id="secretExitBtn" onclick="closePlayer()" class="hidden fixed top-4 left-4 z-50 bg-black/35 hover:bg-black/65 text-white/75 px-4 py-2 rounded-2xl text-xs font-bold backdrop-blur-sm border border-white/20 transition-all">
                 ✖ Esci
             </button>
@@ -413,15 +419,25 @@
 
     <!-- MODALE GITHUB -->
     <div id="githubModal" class="fixed inset-0 z-50 bg-[#2B2D42]/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="document.getElementById('githubModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F]">✖</button>
-            <h2 class="font-display text-2xl font-bold text-[#2B2D42] mb-2">📦 File per GitHub</h2>
-            <p class="text-sm text-slate-600 mb-6">Scarica i file pronti per creare la tua PWA su GitHub Pages.</p>
-            <div class="space-y-3">
-                <button onclick="downloadCode('html')" class="w-full bg-[#E07A5F] text-white font-bold py-3 rounded-xl">1. Scarica index.html</button>
-                <button onclick="downloadCode('manifest')" class="w-full bg-[#F4D35E] text-[#2B2D42] font-bold py-3 rounded-xl">2. Scarica manifest.json</button>
-                <button onclick="downloadCode('sw')" class="w-full bg-[#84A98C] text-white font-bold py-3 rounded-xl">3. Scarica sw.js (Offline)</button>
-                <button onclick="downloadCode('readme')" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl">4. Scarica README (Istruzioni)</button>
+            <h2 class="font-display text-2xl font-bold text-[#2B2D42] mb-2">📦 File per GitHub (Installabili)</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mb-4">Puoi sia <strong>scaricare</strong> i 3 file sia <strong>copiarne il codice</strong> negli appunti con un clic per incollarlo direttamente su GitHub!</p>
+            <div class="space-y-2.5">
+                <div class="flex gap-2">
+                    <button onclick="downloadCode('html')" class="flex-1 bg-[#E07A5F] text-white font-bold py-2.5 px-3 rounded-xl text-xs sm:text-sm">⬇️ Scarica index.html</button>
+                    <button onclick="copyCodeToClipboard('html')" class="bg-slate-100 hover:bg-slate-200 text-[#2B2D42] font-extrabold py-2.5 px-3 rounded-xl text-xs border border-slate-300">📋 Copia</button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="downloadCode('manifest')" class="flex-1 bg-[#F4D35E] text-[#2B2D42] font-bold py-2.5 px-3 rounded-xl text-xs sm:text-sm">⬇️ Scarica manifest.json</button>
+                    <button onclick="copyCodeToClipboard('manifest')" class="bg-slate-100 hover:bg-slate-200 text-[#2B2D42] font-extrabold py-2.5 px-3 rounded-xl text-xs border border-slate-300">📋 Copia</button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="downloadCode('sw')" class="flex-1 bg-[#84A98C] text-white font-bold py-2.5 px-3 rounded-xl text-xs sm:text-sm">⬇️ Scarica sw.js</button>
+                    <button onclick="copyCodeToClipboard('sw')" class="bg-slate-100 hover:bg-slate-200 text-[#2B2D42] font-extrabold py-2.5 px-3 rounded-xl text-xs border border-slate-300">📋 Copia</button>
+                </div>
+                <button onclick="downloadCode('readme')" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm">⬇️ Scarica README.md</button>
+                <div id="copyCodeFeedback" class="hidden text-center text-xs font-extrabold text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-200">✅ Codice copiato negli appunti!</div>
             </div>
         </div>
     </div>
@@ -503,7 +519,7 @@
                 <div id="parentVideoList" class="mt-3 space-y-2 max-h-32 overflow-y-auto border-t border-gray-200 pt-3"></div>
             </div>
 
-            <!-- 4. SEZIONE VOCI REGISTRATE MULTIPLE (MAMMA, PAPÀ, NONNI) -->
+            <!-- 4. SEZIONE VOCI REGISTRATE MULTIPLE -->
             <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-200 mb-5">
                 <h3 class="font-bold text-emerald-800 mb-1 flex items-center gap-2 text-sm sm:text-base"><span>🎙️</span> Voci Premio (Mamma, Papà...)</h3>
                 <p class="text-xs text-slate-600 mb-3">Registra più voci di incoraggiamento. Quando la bimba indovina nella Sala Giochi, l'app ne riprodurrà una a sorpresa!</p>
@@ -552,18 +568,37 @@
         </div>
     </div>
 
-    <!-- MODALE ISTRUZIONI INSTALLAZIONE IOS -->
+    <!-- MODALE UNIVERSALE ISTRUZIONI INSTALLAZIONE (ANDROID S25 / SAMSUNG INTERNET / CHROME / IOS) -->
     <div id="iosInstallModal" class="fixed inset-0 z-50 bg-[#2B2D42]/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl relative text-center">
+        <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="document.getElementById('iosInstallModal').classList.add('hidden')" class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-[#E07A5F]">✖</button>
-            <div class="text-4xl mb-3">📱</div>
-            <h2 class="font-display text-xl font-bold text-[#2B2D42] mb-4">Installa su iPhone/iPad</h2>
-            <p class="text-sm text-slate-600 mb-4">Per aggiungere l'app al tuo telefono:</p>
-            <ol class="text-left text-sm text-slate-700 space-y-3 mb-6 font-semibold">
-                <li class="flex gap-2"><span>1.</span> <span>Tocca l'icona <strong>Condividi</strong> (il quadrato con la freccia in su) in basso o in alto nel browser.</span></li>
-                <li class="flex gap-2"><span>2.</span> <span>Scorri e seleziona <strong>"Aggiungi a Schermata Home"</strong> ➕.</span></li>
-            </ol>
-            <button onclick="document.getElementById('iosInstallModal').classList.add('hidden')" class="w-full bg-[#E07A5F] text-white font-bold py-3 rounded-xl">Ho capito</button>
+            <div class="text-center mb-3">
+                <div class="text-4xl mb-1">📲</div>
+                <h2 class="font-display text-xl font-bold text-[#2B2D42]">Come installarla sul Telefono</h2>
+                <p class="text-xs text-slate-500">Se il telefono mostra "Impossibile installare" o usi un browser integrato (es. WhatsApp), segui questi 2 passaggi:</p>
+            </div>
+
+            <div class="space-y-3 text-left mb-5">
+                <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3.5">
+                    <h3 class="font-extrabold text-emerald-900 text-xs sm:text-sm mb-1.5">🤖 Su Samsung S25 / Android (Chrome o Samsung Internet)</h3>
+                    <ol class="text-xs text-slate-700 space-y-1.5 list-decimal pl-4 font-semibold">
+                        <li>Assicurati di aver aperto il link dentro <strong>Google Chrome</strong> o <strong>Samsung Internet</strong> (non dentro WhatsApp/Telegram).</li>
+                        <li>Tocca il menu in alto a destra <strong>⋮</strong> (su Chrome) o <strong>≡</strong> in basso (su Samsung Internet).</li>
+                        <li>Premi <strong>"Aggiungi a schermata Home"</strong> (oppure <strong>"Installa applicazione"</strong>).</li>
+                        <li><em>Se avevi una vecchia icona salvata prima dell'aggiornamento, eliminala dalla Home e ricreala dopo aver ricaricato la pagina!</em></li>
+                    </ol>
+                </div>
+
+                <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-3.5">
+                    <h3 class="font-extrabold text-sky-900 text-xs sm:text-sm mb-1.5">🍎 Su iPhone / iPad (Safari)</h3>
+                    <ol class="text-xs text-slate-700 space-y-1.5 list-decimal pl-4 font-semibold">
+                        <li>Tocca l'icona <strong>Condividi</strong> (il quadrato con la freccia in su).</li>
+                        <li>Scorri e seleziona <strong>"Aggiungi a Schermata Home" ➕</strong>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <button onclick="document.getElementById('iosInstallModal').classList.add('hidden')" class="w-full bg-[#E07A5F] text-white font-extrabold py-3 rounded-xl text-sm">Perfetto, ho capito!</button>
         </div>
     </div>
 
@@ -606,7 +641,7 @@
             unlockedStickers = [];
         }
 
-        /* SINTETIZZATORE AUDIO MUSICALE DOLCE (Marimba / Carillon Web Audio API - Zero file esterni) */
+        /* SINTETIZZATORE AUDIO MUSICALE DOLCE (Web Audio API) */
         let audioCtx = null;
         const pentatonicFreqs = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
 
@@ -701,7 +736,6 @@
             if (won) {
                 childStats.gamesWon = (childStats.gamesWon || 0) + 1;
                 if (word) childStats.wordCounts[word] = (childStats.wordCounts[word] || 0) + 1;
-                // Ogni 5 vittorie regala una nuova figurina parlante!
                 if (childStats.gamesWon > 0 && childStats.gamesWon % 5 === 0) {
                     setTimeout(() => triggerGiftBoxModal(), 900);
                 }
@@ -945,7 +979,6 @@
                     { emoji: '✈️', word: 'Aereo', en: 'Airplane', syllables: 'A - E - REO', sound: 'Vola alto tra le nuvole!', phrase: 'L\'aereo vola in alto nel cielo', question: 'Chi ha le ali grandi e vola tra le nuvole?' }
                 ]
             },
-            /* EPISODI SEGRETI SBLOCCABILI CON I PROGRESSI NELLA SALA GIOCHI */
             {
                 id: 'dinosauri_segreti', icon: '🦕', title: 'Il Mondo dei Dinosauri', color: '#10B981', type: 'interactive', unlockWins: 5,
                 slides: [
@@ -1267,7 +1300,6 @@
             if (sleepTimer) clearTimeout(sleepTimer);
             if (blueLightPreTimer) clearTimeout(blueLightPreTimer);
             if (sleepDurationMs > 0) {
-                // Attiva automaticamente il filtro luce blu calda negli ultimi 2 minuti
                 const preTime = Math.max(1000, sleepDurationMs - 120000);
                 blueLightPreTimer = setTimeout(() => {
                     toggleBlueLightFilter(true);
@@ -1312,7 +1344,6 @@
             const grid = document.getElementById('episodesGrid');
             if (!grid) return;
 
-            // MODALITÀ SOCIAL REELS (Profilo in stile Instagram Reels / TikTok)
             if (currentMode === 'social') {
                 const ytVideos = episodesData.filter(e => e.type === 'youtube');
                 if (ytVideos.length === 0) {
@@ -1348,7 +1379,6 @@
                 return;
             }
 
-            // MODALITÀ STANDARD
             grid.className = "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5";
             const modeBtnLabels = {
                 tv: { text: '📺 Avvia TV', bg: 'bg-[#E07A5F] text-white' },
@@ -1436,7 +1466,6 @@
             feed.innerHTML = ytVideos.map((v, i) => `
                 <div class="social-slide relative w-full h-full snap-start snap-always flex items-center justify-center bg-black overflow-hidden">
                     <iframe class="w-full h-full pointer-events-none" src="https://www.youtube.com/embed/${v.ytId}?enablejsapi=1&autoplay=${i === startIndex ? 1 : 0}&controls=0&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=${v.ytId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    <!-- Scudo locale sopra il singolo video: permette lo swipe centrale ma impedisce di toccare YouTube -->
                     <div class="absolute inset-0 z-10 bg-transparent"></div>
                     <div class="absolute bottom-10 left-5 right-16 z-20 pointer-events-none text-left">
                         <span class="bg-[#E07A5F] text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow">📱 Scorri al centro</span>
@@ -1526,14 +1555,12 @@
             const slide = activeEpisode.slides[slideIndex];
             if (!slide) return;
 
-            // MODALITÀ SALA GIOCHI ADATTIVA PER ETÀ (1-2 ANNI: Trova Figura | 2-3 ANNI: Indovina il Concetto | 3-4 ANNI: Memory delle Coppie)
             if (currentMode === 'games') {
                 if (childAgeLevel === 3 && activeEpisode.slides.length >= 2) {
                     renderMemoryGameStage();
                     return;
                 }
 
-                // Costruisce un pool di alternative anche se l'episodio ha poche slide
                 let pool = activeEpisode.slides.filter((_, idx) => idx !== slideIndex);
                 if (pool.length < 2) {
                     const fallbackPool = [
@@ -1576,7 +1603,6 @@
                 return;
             }
 
-            // MODALITÀ TV O TOCCA & PARLA (Con Prime Frasi a 2-3 anni e Inglese opzionale)
             stage.style.pointerEvents = (currentMode === 'tv' && isLocked) ? 'none' : 'auto';
 
             const phraseBlockHtml = (childAgeLevel >= 2 && slide.phrase) ? `
@@ -1796,7 +1822,6 @@
         const secretExitBtn = document.getElementById('secretExitBtn');
         let lockHoldTimer = null;
 
-        // Toccare lo scudo mentre è bloccato genera bolle di sapone musicali rilassanti e riattiva il fullscreen se necessario
         touchShield.addEventListener('pointerdown', (e) => {
             if (!isLocked) return;
             e.preventDefault();
@@ -1871,7 +1896,6 @@
             renderRecordedVoicesList();
         }
 
-        /* CREATORE SCHEDE ALBUM DI FAMIGLIA (Foto compressa + Audio opzionale) */
         let tempFamilyPhotoData = null;
         let tempFamilyAudioData = null;
         let familyMediaRecorder = null;
@@ -1981,7 +2005,6 @@
             renderFamilyCardsList();
             renderEpisodes();
 
-            // Reset form
             tempFamilyPhotoData = null;
             tempFamilyAudioData = null;
             if (wordInput) wordInput.value = '';
@@ -2213,7 +2236,7 @@
             }
         }
 
-        /* ESPORTA E IMPORTA BACKUP COMPLETO (VIDEO + VOCI + FOTO FAMIGLIA + STATISTICHE + FIGURINE) */
+        /* ESPORTA E IMPORTA BACKUP COMPLETO */
         function exportAppBackup() {
             const customYt = episodesData.filter(e => e.type === 'youtube');
             const backupPayload = {
@@ -2325,14 +2348,13 @@
             reader.readAsText(file);
         }
 
-        /* INSTALLAZIONE PWA */
+        /* INSTALLAZIONE PWA (ANDROID S25 + IOS + GUIDA FALLBACK) */
         let deferredPrompt = null;
         const installBtn = document.getElementById('installAppBtn');
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches || window.navigator.standalone;
 
-        if (isIOS && !isStandalone && installBtn) {
-            installBtn.classList.remove('hidden');
+        if (isStandalone && installBtn) {
+            installBtn.classList.add('hidden');
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -2341,47 +2363,82 @@
             if (!isStandalone && installBtn) installBtn.classList.remove('hidden');
         });
 
+        window.addEventListener('appinstalled', () => {
+            if (installBtn) installBtn.classList.add('hidden');
+            deferredPrompt = null;
+        });
+
         async function installApp() {
             if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') installBtn.classList.add('hidden');
-                deferredPrompt = null;
-            } else if (isIOS) {
-                document.getElementById('iosInstallModal').classList.remove('hidden');
+                try {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted' && installBtn) installBtn.classList.add('hidden');
+                    deferredPrompt = null;
+                    return;
+                } catch (err) {}
             }
+            document.getElementById('iosInstallModal').classList.remove('hidden');
         }
 
-        /* DOWNLOAD FILE GITHUB */
-        function downloadCode(type) {
-            let content = '';
-            let filename = '';
+        /* GENERATORE CODICE FILE GITHUB (Download + Copia negli Appunti) */
+        function getCodeFileContent(type) {
+            const svgIconUri = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='115' fill='%23E07A5F'/%3E%3Ccircle cx='256' cy='265' r='175' fill='%23FFFDF7'/%3E%3Ccircle cx='192' cy='230' r='28' fill='%232B2D42'/%3E%3Ccircle cx='320' cy='230' r='28' fill='%232B2D42'/%3E%3Cpath d='M 200 305 Q 256 365 312 305' stroke='%23E07A5F' stroke-width='28' stroke-linecap='round' fill='none'/%3E%3C/svg%3E";
             if (type === 'html') {
-                content = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-                filename = 'index.html';
+                return { content: '<!DOCTYPE html>\n' + document.documentElement.outerHTML, filename: 'index.html' };
             } else if (type === 'manifest') {
-                content = JSON.stringify({
-                    name: "BimbiParla TV",
-                    short_name: "BimbiParla",
-                    start_url: "./index.html",
-                    display: "fullscreen",
-                    orientation: "any",
-                    background_color: "#FFFDF7",
-                    theme_color: "#E07A5F"
-                }, null, 2);
-                filename = 'manifest.json';
+                return {
+                    content: JSON.stringify({
+                        id: "./index.html",
+                        name: "BimbiParla TV — Impara a Parlare",
+                        short_name: "BimbiParla",
+                        description: "La TV Educativa interattiva per imparare a parlare e capire.",
+                        start_url: "./index.html",
+                        scope: "./",
+                        display: "standalone",
+                        orientation: "any",
+                        background_color: "#FFFDF7",
+                        theme_color: "#E07A5F",
+                        icons: [
+                            { src: svgIconUri, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+                            { src: svgIconUri, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+                        ]
+                    }, null, 2),
+                    filename: 'manifest.json'
+                };
             } else if (type === 'sw') {
-                content = "self.addEventListener('install', e => self.skipWaiting());\nself.addEventListener('fetch', e => e.respondWith( fetch(e.request).catch(() => caches.match(e.request)) ));";
-                filename = 'sw.js';
-            } else if (type === 'readme') {
-                content = "# BimbiParla TV\nCarica questi file su GitHub Pages per installare la web app sul telefono.";
-                filename = 'README.md';
+                return {
+                    content: "const CACHE_NAME = 'bimbiparla-tv-v3';\nconst ASSETS = ['./', './index.html', './manifest.json'];\nself.addEventListener('install', e => {\n  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));\n  self.skipWaiting();\n});\nself.addEventListener('activate', e => {\n  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));\n  self.clients.claim();\n});\nself.addEventListener('fetch', e => {\n  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request)));\n});",
+                    filename: 'sw.js'
+                };
             }
+            return {
+                content: "# BimbiParla TV\nCarica index.html, manifest.json e sw.js su GitHub Pages per installare la web app sul telefono.",
+                filename: 'README.md'
+            };
+        }
+
+        function downloadCode(type) {
+            const { content, filename } = getCodeFileContent(type);
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = filename;
             a.click();
+        }
+
+        function copyCodeToClipboard(type) {
+            const { content, filename } = getCodeFileContent(type);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content).then(() => {
+                    const fb = document.getElementById('copyCodeFeedback');
+                    if (fb) {
+                        fb.innerText = `✅ Codice di ${filename} copiato negli appunti!`;
+                        fb.classList.remove('hidden');
+                        setTimeout(() => fb.classList.add('hidden'), 3500);
+                    }
+                });
+            }
         }
 
         if ('serviceWorker' in navigator) {
